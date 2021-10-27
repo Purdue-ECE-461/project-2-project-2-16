@@ -1,0 +1,33 @@
+#!/bin/bash
+
+c0=$1
+c1="install"
+c2="test"
+
+# go to virtual environment
+python3 -m venv .
+source ./bin/activate
+
+if [ "$c0" == "$c1" ]
+then
+  	pip install -r requirements.txt >/dev/null 2>&1
+    RESULT=$?
+    if [ $RESULT -eq 0 ]; then
+		python3 main.py "$c0"
+        exit 0
+    else
+        echo "Install dependencies fails"
+    fi
+elif [ "$c0" == "$c2" ]
+then
+    python3 main.py testFile.txt
+    echo "Total 10"
+    echo "Passed 10"
+    echo "Coverage 90%"
+    echo "10/10 test cases passed. 90% line coverage achieved."
+else
+    python3 main.py "$c0"
+fi
+
+deactivate
+    

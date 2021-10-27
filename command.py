@@ -26,6 +26,7 @@ def figure_out_command(user_input):
 
     if user_command == "INSTALL":
         try:
+            print("starting install")
             setup_dependency()
         except RuntimeError:
             print("Dependency does not install correctly")
@@ -34,13 +35,16 @@ def figure_out_command(user_input):
 
     elif user_command == "URL_SET":
         try:
+            print("starting scoring with " + user_input)
             get_score(user_input)
+            
         except RuntimeError:
             print("Score evaluation does not work correctly")
 
         return 0
 
     elif user_command == "TEST":
+        print("starting tests")
         test_all()
         return 0
 
@@ -54,7 +58,7 @@ def write_log_file():
     current_mode = find_log_mode()
 
     output_file_address = str(LOG_FILE) + ".log"
-    output_file = open(output_file_address, 'a')
+    #output_file = open(output_file_address, 'a')
 	
     API_num = count_lines("requirements.txt")
 
@@ -62,7 +66,9 @@ def write_log_file():
         pass
 
     elif current_mode == 'NORMAL':
-        output_file.write(str(API_num) + "API analyzed\n")
+        print("log mode: Normal")
+        #output_file.write(str(API_num) + "API analyzed\n")
 
     elif current_mode == 'DEBUG':
-        output_file.write(str(API_num) + "cases tested\n")
+        print("log mode: debug")
+        #output_file.write(str(API_num) + "cases tested\n")

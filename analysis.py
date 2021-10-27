@@ -53,7 +53,10 @@ def get_ramp_up(json):
 def get_bus_factor(json):
     contri_url = json['contributors_url']
     r = requests.get(contri_url)
-    return len(r.json())
+    #print(r.json())
+    #print("bus factor score: " + str(len(r.json())))
+    #return len(r.json())
+    return .5
 
 
 def get_responsive_score(json):
@@ -104,23 +107,29 @@ def get_correctness(json, git_url, repo_name):
 
 def calculator(json_dict, url, repo, git_url):
     ramp_up_score = get_ramp_up(json_dict)
+    print("finished ramp up score")
     # correctness_score = get_correctness(json) #this calls another program, and test the test case
     bus_factor = get_bus_factor(json_dict)
+    print("finished bus factor score")
 
     #time out the correctness function, because it uses ML regression, it might take too long
     signal.signal(signal.SIGALRM, handler)
     signal.alarm(120)
     try:
-        correctness = get_correctness(json_dict, git_url, repo)
+        print("placeholder analyze correctness")
+        correctness = .5
+        #correctness = get_correctness(json_dict, git_url, repo)
     except Exception as exc:
         print(exc)
         correctness = 0.5
 
     responsive_score = get_responsive_score(json_dict)
+    print("finished responsive score")
     license = get_license(json_dict)
+    print("got license")
 
-    net = sum([ramp_up_score, bus_factor, responsive_score, license])
-    results[url] = [net, ramp_up_score, bus_factor, responsive_score, license]
+    net = sum([ramp_up_score, correctness, bus_factor, responsive_score, license])
+    results[url] = [net, ramp_up_score, correctness, bus_factor, responsive_score, license]
     pass
 
 
@@ -142,52 +151,61 @@ def url_to_user(url):
 
 
 def set_print_ordered():
-    sorted_values = sorted(results.values(),
-                           reverse=True)  # Sort the values adopted from :https://stackabuse.com/how-to-sort-dictionary-by-value-in-python/
+
+    scoreList = list(results.items())
+    scoreList.sort(key=lambda x:x[1][0])
+   # sorted_values = sorted(results.values(), key=lambda x: x[0])[::-1]  # Sort the values adopted from :https://stackabuse.com/how-to-sort-dictionary-by-value-in-python/
+    #print(scoreList)
     sorted_dict = {}
 
-    for i in sorted_values:
-        for k in results.keys():
-            if results[k] == i:
-                sorted_dict[k] = results[k]
-                break
+    # for i in sorted_values:
+    #     for k in results.keys():
+    #         if results[k] == i:
+    #             sorted_dict[k] = results[k]
+    #             break
 
-    max_list = [0, 0, 0, 0, 0]
-    for key in sorted_dict:
-        for j in range(1, 6):
-            if max_list[j - 1] < sorted_dict[key][j]:
-                max_list[j - 1] = sorted_dict[key][j]
+    # max_list = [0, 0, 0, 0, 0]
+    # for key in sorted_dict:
+    #     for j in range(1, 6):
+    #         if max_list[j - 1] < sorted_dict[key][j]:
+    #             max_list[j - 1] = sorted_dict[key][j]
 
-    for key in sorted_dict:
-        for j in range(1, 5):
-            if max_list[j - 1] == 0:
-                sorted_dict[key][j] = 1
-            else:
-                sorted_dict[key][j] = sorted_dict[key][j] / max_list[j - 1]
+    # for key in sorted_dict:
+    #     for j in range(1, 5):
+    #         if max_list[j - 1] == 0:
+    #             sorted_dict[key][j] = 1
+    #         else:
+    #             sorted_dict[key][j] = sorted_dict[key][j] / max_list[j - 1]
 
-    for key in sorted_dict:
-        sorted_dict[key][0] = sorted_dict[key][0] / sum(weights.values())
+    # for key in sorted_dict:
+    #     sorted_dict[key][0] = sorted_dict[key][0] / sum(weights.values())
 
-    return sorted_dict
+    return scoreList
 
 def print_score():
-    sorted_dict = set_print_ordered()
+    sorted_list = set_print_ordered()
 
-    print("URL NET_SCORE RAMP_UP_SCORE CORRECTNESS_SCORE BUS_FACTOR_SCORE RESPONSIVE_MAINTAINER_SCORE LICENSE_SCORE")
-    for key in sorted_dict:
-        print(key, end=" ")
-        for i in sorted_dict[key]:
-            print(i, end=" ")
-        print("")
+    for x in sorted_list:
+        print(x[0] + " %.2f %.2f %.2f %.2f %.2f %.2f" % (x[1][0], x[1][1], x[1][2], x[1][3], x[1][4], x[1][5]))
+
+    # print("URL NET_SCORE RAMP_UP_SCORE CORRECTNESS_SCORE BUS_FACTOR_SCORE RESPONSIVE_MAINTAINER_SCORE LICENSE_SCORE")
+    # for key in sorted_dict:
+    #     print(key, end=" ")
+    #     for i in sorted_dict[key]:
+    #         print(i, end=" ")
+    #     print("")
 
 def get_score(user_input):
     fp = open(user_input, "r")
     urls = fp.readlines()
+    print("stripped urls")
     for url in urls:
         url = url.strip()
         results[url] = []
         owner, repo, git_url= url_to_user(url)
         json = GitRequest(owner, repo)
+        print("completed json request for repo: " + repo)
         calculator(json, url, repo, git_url)
+        print("calculated score for repo: " + repo)
 
     print_score()

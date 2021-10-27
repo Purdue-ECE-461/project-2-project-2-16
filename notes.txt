@@ -1,0 +1,42 @@
+Starter code notes
+
+Had install problems, hopefully fixed with some small edits
+
+Regenerated github token for the .env file
+
+Correctness score is not factored into the scoring mechanism at all
+    Tried to use some sort of "ML Regression"
+    Use gitrisky to try and analyze a code base (I'm guessing)
+    Currently creates an exception in the program
+
+Have an index out of range error in printing of scores
+Using a dictionary to print scores? -> mapping url to list of scores 
+    Editing this print, seems very complicated for no reason
+    They are trying to use ordered dictionaries, which only exist in Python 3.7+
+    Python version being used 3.9.1
+    Confusing and inefficient
+
+Print does not work at all
+
+Score calculation is incorrect, net score should be [0, 1], net scores are currently [28-32]
+    Bus factor score is main problem of this
+    Net score calculation is also just a sum, not on a [0, 1] scale
+    Net score calculations does not assign weights to scores
+    UPDATE: weights were used, but because the print errors, need to be recalculated
+    UPDATE: Their weights are as follows
+        ramp-up: .1
+        num_case: .3
+        num_maintainer: .4
+        log: .1
+        license: .1
+
+License score does not check for actual license compatibility
+
+Bus factor is calculated based on the len() of the json from the request of the contributors url
+    Completely incorrect will need to recalculate
+
+Ramp up score is also very suspect
+    Again pulling random values from json and calculating with no weights/standardized scale
+
+write_log_file(): creates exception due to not handling file
+    nothing catches exception

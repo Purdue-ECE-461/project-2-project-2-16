@@ -3,6 +3,7 @@ import requests
 import subprocess
 import os
 import signal
+from requests.models import encode_multipart_formdata
 import simplejson as json
 from datetime import datetime
 from dotenv import load_dotenv
@@ -51,8 +52,14 @@ def get_ramp_up(json):
 
 
 def get_bus_factor(json):
-    contri_url = json['contributors_url']
-    r = requests.get(contri_url)
+    watch = json["watchers"]
+    print("Watcers: " + str(watch))
+    if watch > 1000:
+        return 1
+    
+    return watch / 1000
+    #contri_url = json['contributors_url']
+    #r = requests.get(contri_url)
     #print(r.json())
     #print("bus factor score: " + str(len(r.json())))
     #return len(r.json())
@@ -81,28 +88,29 @@ def get_license(json):
 
 
 def get_correctness(json, git_url, repo_name):
-    dir = os.getcwd()
-    dir = dir + "/cloned"
-    try:
-        os.mkdir(dir)
-    except FileExistsError:
-        pass
-    os.chdir(dir)
-    try:
-        git.Git(dir).clone(git_url)
-    except:
-        pass
-    os.chdir(repo_name)
-    try:
-        feedback = subprocess.check_output(["gitrisky", "train"])
-    except Exception as e:
-        print(e)
-        return 0.5
-    res = [int(i) for i in feedback.split() if i.isdigit()]
-    total = res[0]
-    bug = res[1]
-    score = (total - bug) / total
-    return score
+    stars = json["stargazers_count"]    
+    scoreValue = 0
+    if stars > 1000:
+        scoreValue = .5
+
+    elif stars > 500:
+        scoreValue = .3
+
+    elif stars > 250:
+        scoreValue = .2
+
+    elif stars > 50:
+        scoreValue = .1
+
+    tempStarNum = stars - 1000
+
+    if tempStarNum >= 500:
+        scoreValue = scoreValue + ((tempStarNum / 500) / 10)
+
+    if scoreValue > 1:
+        scoreValue = 1
+
+    return scoreValue
 
 
 def calculator(json_dict, url, repo, git_url):
@@ -117,8 +125,8 @@ def calculator(json_dict, url, repo, git_url):
     signal.alarm(120)
     try:
         print("placeholder analyze correctness")
-        correctness = .5
-        #correctness = get_correctness(json_dict, git_url, repo)
+        #correctness = .5
+        correctness = get_correctness(json_dict, git_url, repo)
     except Exception as exc:
         print(exc)
         correctness = 0.5
@@ -156,7 +164,6 @@ def set_print_ordered():
     scoreList.sort(key=lambda x:x[1][0])
    # sorted_values = sorted(results.values(), key=lambda x: x[0])[::-1]  # Sort the values adopted from :https://stackabuse.com/how-to-sort-dictionary-by-value-in-python/
     #print(scoreList)
-    sorted_dict = {}
 
     # for i in sorted_values:
     #     for k in results.keys():

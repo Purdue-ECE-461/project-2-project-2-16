@@ -42,6 +42,7 @@ Bus factor is calculated based on the len() of the json from the request of the 
 
 Ramp up score is also very suspect
     Again pulling random values from json and calculating with no weights/standardized scale
+    Seems to not work, always calcs a very small number or 0
 
 write_log_file(): creates exception due to not handling file
     nothing catches exception

@@ -2,6 +2,8 @@ from google.cloud import storage
 from dotenv import load_dotenv
 import os
 import zipfile
+import json
+from analysis import *
 
 class ApplicationService:
     def __init__(self):
@@ -31,11 +33,36 @@ class ApplicationService:
         pass
 
     def rate(packageList):
-        # score a list of packages
-        pass
+        # score a list of packages (zip files)
+        results = dict()
+        currentDir = os.getcwd()
+        newDir = "unzipped_repo"
+        newPath = os.path.join(currentDir, newDir)
+
+        if not os.path.exists(newPath):
+            os.makedirs(newPath)
+
+        for p in packageList:
+            with zipfile.ZipFile(p, "r") as zipRef:
+                zipRef.extractall(newPath)
+            
+            # error if package.json does not exist
+            fptr = open('package.json')
+            jsonData = json.load(fptr)
+            repoUrl = jsonData["homepage"]
+            score = scoreUrl(repoUrl)
+            results[p] = score
+        
+        return results
+        
 
     def download(packageList):
         # download a list of packages from the existing repo
+        storageClient = storage.Client()
+        bucketName = os.getenv("BUCKET_NAME")
+        bucket = storageClient.bucket(bucketName)
+        blob = bucket.blob(nameOfFileToDownload)
+        blob.download_to_filename(destinationFile)
         pass
 
     def fetchHistory(packageList):
@@ -44,6 +71,16 @@ class ApplicationService:
 
     def ingest(packageList):
         # ingest a module into the registry
+        # score repo, if net score > x, upload
+        results = ApplicationService.rate(packageList)
+        for p in packageList:
+            if results[p][0] > .5: # ingest score
+                ApplicationService.upload(p)
+                print("Module ingested.")
+            else:
+                print("Module was not trustworthy enough to be ingested.")
+                print("Module scored: " + str(results[p][0]))
+                print("Cutoff is: .5")
         pass
 
     def audit(packageList):

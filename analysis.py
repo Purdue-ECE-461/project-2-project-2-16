@@ -112,7 +112,6 @@ def get_correctness(json, git_url, repo_name):
 
     return scoreValue
 
-
 def calculator(json_dict, url, repo, git_url):
     ramp_up_score = get_ramp_up(json_dict)
     print("finished ramp up score")
@@ -216,3 +215,17 @@ def get_score(user_input):
         print("calculated score for repo: " + repo)
 
     print_score()
+
+def scoreUrl(url):
+    url = url.strip()
+    results[url] = []
+    owner, repo, git_url = url_to_user(url)
+    json = GitRequest(owner, repo)
+    calculator(json, url, repo, git_url)
+
+    print_score()
+
+    return results[url]
+
+def getScores():
+    return results

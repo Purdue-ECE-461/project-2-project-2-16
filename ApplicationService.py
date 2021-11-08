@@ -1,13 +1,29 @@
+from google.cloud import storage
+from dotenv import load_dotenv
+import os
+import zipfile
+
 class ApplicationService:
     def __init__(self):
         self.registry = None
         self.logger = None
         self.scorer = None
         self.authService = None
+        load_dotenv()
         pass
 
     def upload(packageList, debloatBool = False):
         # take a list of packages and upload them all to the registry with an optional debloat parameter
+        # upload files one at a time or in a zip? *I'm thinking a zip*
+        storageClient = storage.Client()
+        bucketName = os.getenv("BUCKET_NAME")
+        bucket = storageClient.bucket(bucketName)
+        zipRef = zipfile.ZipFile(zipFileName, 'w')
+        for p in packageList:
+            zipRef.write(p)
+        zipRef.close()
+        fileToUpload = bucket.blob(packageListName) # name of storage object goes here
+        fileToUpload.upload_from_filename(zipFilePath) # path to local file
         pass
 
     def update(packageList, debloatBool = False):

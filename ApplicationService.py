@@ -20,12 +20,14 @@ class ApplicationService:
         storageClient = storage.Client()
         bucketName = os.getenv("BUCKET_NAME")
         bucket = storageClient.bucket(bucketName)
-        zipRef = zipfile.ZipFile(zipFileName, 'w')
-        for p in packageList:
-            zipRef.write(p)
-        zipRef.close()
-        fileToUpload = bucket.blob(packageListName) # name of storage object goes here
-        fileToUpload.upload_from_filename(zipFilePath) # path to local file
+        #zipRef = zipfile.ZipFile(zipFileName, 'w')
+        #for p in packageList:
+        #    zipRef.write(p)
+        #zipRef.close()
+        for x in packageList:
+            splitString = x.split("/")
+            fileToUpload = bucket.blob(splitString[-1]) # name of storage object goes here
+            fileToUpload.upload_from_filename(x) # path to local file
         pass
 
     def update(packageList, debloatBool = False):

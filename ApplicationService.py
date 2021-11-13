@@ -14,27 +14,30 @@ class ApplicationService:
         load_dotenv()
         pass
 
-    def upload(packageList, debloatBool = False):
+    def upload(self, packageList, debloatBool = False):
         # take a list of packages and upload them all to the registry with an optional debloat parameter
         # upload files one at a time or in a zip? *I'm thinking a zip*
         storageClient = storage.Client()
         bucketName = os.getenv("BUCKET_NAME")
         bucket = storageClient.bucket(bucketName)
-        zipRef = zipfile.ZipFile(zipFileName, 'w')
-        for p in packageList:
-            zipRef.write(p)
-        zipRef.close()
-        fileToUpload = bucket.blob(packageListName) # name of storage object goes here
-        fileToUpload.upload_from_filename(zipFilePath) # path to local file
+        #zipRef = zipfile.ZipFile(zipFileName, 'w')
+        #for p in packageList:
+        #    zipRef.write(p)
+        #zipRef.close()
+        for x in packageList:
+            splitString = x.split("/")
+            fileToUpload = bucket.blob(splitString[-1]) # name of storage object goes here
+            fileToUpload.upload_from_filename(x) # path to local file
         pass
 
-    def update(packageList, debloatBool = False):
+    def update(self, packageList, debloatBool = False):
         # update a list of packages in registry with an optional debloat parameter
         pass
 
-    def rate(packageList):
+    def rate(self, packageList):
         # score a list of packages (zip files)
-        results = dict()
+        results = []
+
         currentDir = os.getcwd()
         newDir = "unzipped_repo"
         newPath = os.path.join(currentDir, newDir)
@@ -43,20 +46,28 @@ class ApplicationService:
             os.makedirs(newPath)
 
         for p in packageList:
+            resultsForRepo = dict()
+
+            print(p)
+
             with zipfile.ZipFile(p, "r") as zipRef:
                 zipRef.extractall(newPath)
-            
+                
             # error if package.json does not exist
-            fptr = open('package.json')
+            fileName = p.split("/")[-1]
+            fileName = fileName[:-4]
+            fptr = open(newPath + "/" + fileName + '/package.json')
             jsonData = json.load(fptr)
             repoUrl = jsonData["homepage"]
             score = scoreUrl(repoUrl)
-            results[p] = score
+            resultsForRepo[p] = score
+            results.append(resultsForRepo)
+
         
         return results
         
 
-    def download(packageList):
+    def download(self, packageList):
         # download a list of packages from the existing repo
         storageClient = storage.Client()
         bucketName = os.getenv("BUCKET_NAME")
@@ -65,11 +76,11 @@ class ApplicationService:
         blob.download_to_filename(destinationFile)
         pass
 
-    def fetchHistory(packageList):
+    def fetchHistory(self, packageList):
         # get history (of this registry) for each package in the package list
         pass
 
-    def ingest(packageList):
+    def ingest(self, packageList):
         # ingest a module into the registry
         # score repo, if net score > x, upload
         results = ApplicationService.rate(packageList)
@@ -83,23 +94,23 @@ class ApplicationService:
                 print("Cutoff is: .5")
         pass
 
-    def audit(packageList):
+    def audit(self, packageList):
         # audit a list of packages of the current registry
         pass
 
-    def search(urlString):
+    def search(self, urlString):
         # search the registry for a module
         pass
 
-    def newUser(uploadPerm, downloadPerm, searchPerm, adminPerm):
+    def newUser(self, uploadPerm, downloadPerm, searchPerm, adminPerm):
         # creates a new user in the registry system
         pass
 
-    def removeUser(userToDelete):
+    def removeUser(self, userToDelete):
         # removes an existing user in the system
         pass
 
-    def reset():
+    def reset(self):
         # resets the registry to the starting state
         pass
 

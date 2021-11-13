@@ -4,6 +4,7 @@ import os
 import zipfile
 import json
 from analysis import *
+from pathlib import Path
 
 class ApplicationService:
     def __init__(self):
@@ -17,13 +18,9 @@ class ApplicationService:
     def upload(self, packageList, debloatBool = False):
         # take a list of packages and upload them all to the registry with an optional debloat parameter
         # upload files one at a time or in a zip? *I'm thinking a zip*
-        storageClient = storage.Client()
+        storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
         bucketName = os.getenv("BUCKET_NAME")
         bucket = storageClient.bucket(bucketName)
-        #zipRef = zipfile.ZipFile(zipFileName, 'w')
-        #for p in packageList:
-        #    zipRef.write(p)
-        #zipRef.close()
         for x in packageList:
             splitString = x.split("/")
             fileToUpload = bucket.blob(splitString[-1]) # name of storage object goes here
@@ -32,6 +29,14 @@ class ApplicationService:
 
     def update(self, packageList, debloatBool = False):
         # update a list of packages in registry with an optional debloat parameter
+        storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
+        bucketName = os.getenv("BUCKET_NAME")
+        bucket = storageClient.bucket(bucketName)
+        for p in packageList:
+            splitString = p.split("/")
+            fileToCheck = bucket.blob(splitString[-1])
+            if (fileToCheck.exists()):
+                self.upload(p)
         pass
 
     def rate(self, packageList):
@@ -69,12 +74,21 @@ class ApplicationService:
 
     def download(self, packageList):
         # download a list of packages from the existing repo
-        storageClient = storage.Client()
+        storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
         bucketName = os.getenv("BUCKET_NAME")
         bucket = storageClient.bucket(bucketName)
-        blob = bucket.blob(nameOfFileToDownload)
-        blob.download_to_filename(destinationFile)
+        downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
+
+        if not os.path.exists(downloadPath):
+            os.makedirs(downloadPath)
+
+        for x in packageList:
+            splitString = x.split("/")
+            fileToDownload = bucket.blob(splitString[-1]) # name of storage object goes here
+            print(downloadPath + "/" + splitString[-1])
+            fileToDownload.download_to_filename(downloadPath + "/" + splitString[-1]) # path to local file
         pass
+
 
     def fetchHistory(self, packageList):
         # get history (of this registry) for each package in the package list

@@ -11,6 +11,12 @@ def main():
             print(p)
         appService.rate(packageList)
         print("Rate finished!")
+        print("Trying to upload")
+        appService.upload(packageList)
+        print("Finished upload")
+        print("Trying to download")
+        appService.download(packageList)
+        print("Finished download")
 
 
 if __name__ == '__main__':

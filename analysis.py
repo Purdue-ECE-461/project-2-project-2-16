@@ -21,9 +21,9 @@ headers = {
 
 weights = {
     'ramp-up': 0.1,
-    'num_case': 0.3,
-    'num_maintainer': 0.4,
-    'log': 0.1,
+    'correct': 0.3,
+    'maintainer': 0.4,
+    'bus-factor': 0.1,
     'license': 0.1
 }
 
@@ -43,12 +43,11 @@ def GitRequest(owner, repo):
 
 
 def get_ramp_up(json):
-    size = json["size"]
     hasWiki = json['has_wiki']
     if hasWiki is False:
         return 0
     else:
-        return 1 / size
+        return 1
 
 
 def get_bus_factor(json):
@@ -135,7 +134,7 @@ def calculator(json_dict, url, repo, git_url):
     license = get_license(json_dict)
     print("got license")
 
-    net = sum([ramp_up_score, correctness, bus_factor, responsive_score, license])
+    net = sum([weights["ramp-up"] * ramp_up_score, weights["correct"] * correctness, weights["bus-factor"] * bus_factor, weights["maintainer"] * responsive_score, weights["license"] * license])
     results[url] = [net, ramp_up_score, correctness, bus_factor, responsive_score, license]
     pass
 

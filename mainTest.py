@@ -1,5 +1,10 @@
 from ApplicationService import *
+from Server import *
 import sys
+
+def serverTest():
+    server = Server()
+    server.listen()
 
 def main():
     if len(sys.argv) != 2:
@@ -20,4 +25,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    serverTest()

@@ -100,7 +100,7 @@ class ApplicationService:
         results = ApplicationService.rate(packageList)
         for p in packageList:
             if results[p][0] > .5: # ingest score
-                ApplicationService.upload(p)
+                self.upload(p)
                 print("Module ingested.")
             else:
                 print("Module was not trustworthy enough to be ingested.")

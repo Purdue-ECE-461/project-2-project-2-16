@@ -19,9 +19,9 @@ on:
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
-  GKE_CLUSTER: cluster-1    # TODO: update to cluster name
-  GKE_ZONE: us-central1-c   # TODO: update to cluster zone
-  DEPLOYMENT_NAME: gke-test # TODO: update to deployment name
+  GKE_CLUSTER: ece-461-project            # Manual
+  GKE_ZONE: us-west1                      # Manual
+  DEPLOYMENT_NAME: ece-461-project-deploy # Manual
   IMAGE: static-site
 
 jobs:

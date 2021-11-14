@@ -3,6 +3,9 @@ from flask_restful import Resource, Api, reqparse
 from ApplicationService import *
 from google.cloud import storage
 
+app = Flask(__name__)
+api = Api(app)
+
 class Package(Resource):
     def get(self):
         parser = reqparse.RequestParser()
@@ -20,7 +23,11 @@ class Package(Resource):
             return {'metadata': "None"}, 400
 
     def put(self):
-        
+        pass
 
+api.add_resource(Package, '/package')
+
+if __name__ == '__main__':
+    app.run()
 
 

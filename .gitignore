@@ -3,3 +3,4 @@ __pycache__
 Downloads
 unzipped_repo
 .env
+google-cloud-creds.json

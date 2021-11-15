@@ -19,7 +19,7 @@ on:
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
-  GKE_CLUSTER: ece-461-app-service           # Manual
+  GKE_CLUSTER: ece-461-project           # Manual
   GKE_ZONE: us-west1                      # Manual
   DEPLOYMENT_NAME: ece-461-app # Manual
   IMAGE: static-site

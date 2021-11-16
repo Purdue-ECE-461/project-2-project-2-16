@@ -1,1 +1,1 @@
-print("No docstring or new line")
+print("No newline or docstring.")

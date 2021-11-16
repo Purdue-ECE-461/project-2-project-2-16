@@ -1,2 +1,1 @@
-'''Tests CI'''
-print("With newline and docstring.")
+print("This file tests pylint.")

@@ -1,1 +1,2 @@
-print("No newline or docstring.")
+'''Tests CI'''
+print("With newline and docstring.")

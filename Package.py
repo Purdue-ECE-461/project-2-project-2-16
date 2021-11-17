@@ -1,33 +1,31 @@
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
 from ApplicationService import *
+from flask_marshmallow import Marshmallow
 from google.cloud import storage
+#from your_orm import Model, Column, Integer, String, DateTime
+import sys
 
 app = Flask(__name__)
-api = Api(app)
+ma = Marshmallow(app)
 
-class Package(Resource):
-    def get(self):
-        parser = reqparse.RequestParser()
 
-        parser.add_argument('id', required=True)
-        args = parser.parse_args() # parse args into dictionary
-
+@app.route("/package/<id>")
+def getPackage(id):
         storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
         bucketName = os.getenv("BUCKET_NAME")
         bucket = storageClient.bucket(bucketName)
-        fileToCheck = bucket.blob(args['id'] + ".zip")
+        fileToCheck = bucket.blob(id + ".zip")
+        
         if (fileToCheck.exists()):
-            return {'metadata': {"Name": args["id"], "Version": "1.0.0", "ID": args["id"]}}, 200
+            return {'metadata': {"Name": id + ".zip", "Version": "1.0.0", "ID": id}}, 200
         else:
             return {'metadata': "None"}, 400
 
-    def put(self):
-        pass
 
-api.add_resource(Package, '/package')
+#api.add_resource(Package, '/package/<id>')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
 
 

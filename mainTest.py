@@ -14,14 +14,17 @@ def main():
         packageList = sys.argv[1:]
         for p in packageList:
             print(p)
-        appService.rate(packageList)
-        print("Rate finished!")
-        print("Trying to upload")
-        appService.upload(packageList)
-        print("Finished upload")
-        print("Trying to download")
-        appService.download(packageList)
-        print("Finished download")
+        #appService.rate(packageList)
+        #print("Rate finished!")
+        #print("Trying to upload file: " + str(p))
+        #appService.upload(packageList)
+        #print("Finished uploading file: " + str(p))
+        #print("Trying to download")
+        #appService.download(packageList)
+        #print("Finished download")
+        print("Trying to ingest module " + str(p))
+        appService.ingest(p)
+        
 
 
 if __name__ == '__main__':

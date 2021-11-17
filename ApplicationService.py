@@ -97,7 +97,8 @@ class ApplicationService:
     def ingest(self, packageList):
         # ingest a module into the registry
         # score repo, if net score > x, upload
-        results = ApplicationService.rate(packageList)
+        appService = ApplicationService()
+        results = appService.rate(packageList)
         for p in packageList:
             if results[p][0] > .5: # ingest score
                 self.upload(p)

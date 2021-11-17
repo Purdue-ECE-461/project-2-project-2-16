@@ -43,11 +43,14 @@ def GitRequest(owner, repo):
 
 
 def get_ramp_up(json):
-    hasWiki = json['has_wiki']
-    if hasWiki is False:
+    try:
+        hasWiki = json['has_wiki']
+        if hasWiki is False:
+            return 0
+        else:
+            return 1
+    except:
         return 0
-    else:
-        return 1
 
 
 def get_bus_factor(json):

@@ -6,7 +6,7 @@ import sys
 
 app = Flask(__name__)
 
-history = dict() # maps String id to (name, version, id)
+history = dict() # maps String id to [(name, version, id, action),...]
 
 appService = ApplicationService()
 
@@ -51,11 +51,17 @@ def ratePackage(id):
 
 @app.route("/package/byName/<name>", methods=['GET'])
 def getPackageByName(name):
+    jsonOut = dict()
+    for x in history:
+        if history[x][0][0] == name:
+            for x in history[x]:
+                # return all versions
+                pass
     pass
 
 @app.route("/package/byName/<name>", methods=['DELETE'])
 def delAllPackageVers(name):
-    
+
     pass
 
 @app.route("/package", methods=['POST'])
@@ -65,6 +71,7 @@ def createPackage():
 @app.route("/packages", methods=['POST'])
 def listPackages():
     offset = request.args.get('offset')
+    # need to check what happens if offset isn't provided
     return {'offset': {"offsetAct": offset}}
 
 

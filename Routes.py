@@ -6,7 +6,7 @@ import sys
 
 app = Flask(__name__)
 
-history = dict() # maps String id to [(name, version, id, action),...]
+history = dict() # maps String id to [(name, version, id),...]
 
 appService = ApplicationService()
 
@@ -28,6 +28,7 @@ def getPackage(id):
 
 @app.route("/package/<id>", methods=['PUT'])
 def putPackage(id):
+    data = request.get_data()
     if (checkIfFileExists(id)):
         #update hist dict with new data
         pass

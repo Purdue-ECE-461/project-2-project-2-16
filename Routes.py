@@ -6,7 +6,7 @@ import sys
 
 app = Flask(__name__)
 
-history = dict() # maps String id to [(name, version, id),...]
+history = dict() # maps String id to [{name, version, id},...]
 
 appService = ApplicationService()
 
@@ -31,7 +31,7 @@ def putPackage(id):
     res = request.get_json(force=True)
     if (checkIfFileExists(id)):
         #update hist dict with new data
-        history[id].append((res["Data"]["metadata"]["Name"], res["Data"]["metadata"]["ID"], res["Data"]["metadata"]["Version"]))
+        history[id].append({"Name": res["Data"]["metadata"]["Name"], "ID": res["Data"]["metadata"]["ID"], "Version": res["Data"]["metadata"]["Version"]})
         return 200
 
     return 400
@@ -61,17 +61,24 @@ def ratePackage(id):
 
 @app.route("/package/byName/<name>", methods=['GET'])
 def getPackageByName(name):
-    jsonOut = dict()
+    jsonOut = []
     for x in history:
-        if history[x][0][0] == name:
+        if history[x][0]["Name"] == name:
             for x in history[x]:
+                jsonOut.append({"Date": datetime.now(), "PackageMetadata": x})
                 # return all versions
-                pass
+                return jsonOut, 200
+        else:
+            return 400
     pass
 
 @app.route("/package/byName/<name>", methods=['DELETE'])
 def delAllPackageVers(name):
-
+    for x in history:
+        if history[x][0]["Name"] == name:
+            history.pop(x)
+            return 200
+    return 400
     pass
 
 @app.route("/package", methods=['POST'])

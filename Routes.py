@@ -6,28 +6,47 @@ import sys
 
 app = Flask(__name__)
 
+history = dict() # maps String id to (name, version, id)
+
+appService = ApplicationService()
+
+    
+def checkIfFileExists(id):
+    storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
+    bucketName = os.getenv("BUCKET_NAME")
+    bucket = storageClient.bucket(bucketName)
+    fileToCheck = bucket.blob(id + ".zip")
+
+    return fileToCheck.exists()
+
 @app.route("/package/<id>")
 def getPackage(id):
-        storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
-        bucketName = os.getenv("BUCKET_NAME")
-        bucket = storageClient.bucket(bucketName)
-        fileToCheck = bucket.blob(id + ".zip")
-        
-        if (fileToCheck.exists()):
+        if (checkIfFileExists(id)):
             return {'metadata': {"Name": id + ".zip", "Version": "1.0.0", "ID": id}}, 200
         else:
             return {'metadata': "None"}, 400
 
 @app.route("/package/<id>", methods=['PUT'])
 def putPackage(id):
-    pass
+    if (checkIfFileExists(id)):
+        #update hist dict with new data
+        pass
+
+    return data
 
 @app.route("/package/<id>", methods=['DELETE'])
 def delPackageVers(id):
+    if (checkIfFileExists(id)):
+        history[id][1] -= 1
+        if history[id][1] <= 0:
+            history.pop(id)
+    
     pass
 
 @app.route("/package/<id>/rate", methods=["GET"])
 def ratePackage(id):
+    # transform id to github url/filename
+    res = appService.rate() # rate the file from id
     pass
 
 @app.route("/package/byName/<name>", methods=['GET'])
@@ -36,6 +55,7 @@ def getPackageByName(name):
 
 @app.route("/package/byName/<name>", methods=['DELETE'])
 def delAllPackageVers(name):
+    
     pass
 
 @app.route("/package", methods=['POST'])
@@ -46,7 +66,9 @@ def createPackage():
 def listPackages():
     offset = request.args.get('offset')
     return {'offset': {"offsetAct": offset}}
-    
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 

@@ -50,9 +50,9 @@ def delPackageVers(id):
 @app.route("/package/<id>/rate", methods=["GET"])
 def ratePackage(id):
     if (checkIfFileExists(id)):
-
+        res = appService.rate()
     # transform id to github url/filename
-    res = appService.rate() # rate the file from id
+     # rate the file from id
     # return 200 with results on success
     # 400 for no such package
     # 500 if scorer errors
@@ -89,6 +89,7 @@ def createPackage():
 def listPackages():
     offset = request.args.get('offset')
     # need to check what happens if offset isn't provided
+    page = 5 * offset
     return {'offset': {"offsetAct": offset}}
 
 

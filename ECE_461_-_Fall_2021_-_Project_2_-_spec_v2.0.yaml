@@ -1,4 +1,4 @@
-swagger: 2.0
+openAPI: 3.0.2
 info:
   title: ECE 461 - Fall 2021 - Project 2
   version: 2.0.0

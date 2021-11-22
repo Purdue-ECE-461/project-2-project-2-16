@@ -83,6 +83,7 @@ def delAllPackageVers(name):
 
 @app.route("/package", methods=['POST'])
 def createPackage():
+    data = request.get_json(force=True)
     pass
 
 @app.route("/packages", methods=['POST'])

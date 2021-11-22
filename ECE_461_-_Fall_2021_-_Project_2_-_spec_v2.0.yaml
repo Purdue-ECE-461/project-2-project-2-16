@@ -12,6 +12,7 @@ info:
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+host: ece461project2group16.endpoints.ece-461-project-2-registry.cloud.goog
 paths:
   /packages:
     summary: Query the registry.

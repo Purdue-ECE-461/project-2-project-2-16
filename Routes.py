@@ -22,7 +22,6 @@ def checkIfFileExists(id):
 
 @app.route("/package/<id>")
 def getPackage(id):
-    # still need to fix content field
     try:
         if (checkIfFileExists(id)):
             storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
@@ -67,8 +66,19 @@ def putPackage(id):
             actionHistory[id].append((datetime.now(), "UPDATE"))
             zipEncodedStr = res["data"]["Content"]
             zipDecoded = base64.b64decode(zipEncodedStr)
-            #create a zip file to pass in to update
-            appService.update()
+            
+            newDir = "new_zips"
+            newPath = str(os.path.join(os.getcwd(), newDir))
+
+            if not os.path.exists(newPath):
+                os.makedirs(newPath)
+            
+            newFile = str(os.path.join(newPath, res["metadata"]["ID"] + ".zip"))
+
+            with open(newFile, 'wb') as fptr:
+                fptr.write(zipDecoded)
+
+            appService.update(newFile)
             return 200
 
         return 400

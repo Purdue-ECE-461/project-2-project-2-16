@@ -1,14 +1,13 @@
 from flask import Flask, request
 from ApplicationService import *
 from google.cloud import storage
-#from your_orm import Model, Column, Integer, String, DateTime
-import sys
 import zipfile
-import io
+import base64
 
 app = Flask(__name__)
 
-history = dict() # maps String id to [{name, version, id},...]
+packageList = dict() # maps String id to {name, version, id}
+actionHistory = dict() # maps String id to [(date, action)],...
 
 appService = ApplicationService()
 
@@ -23,9 +22,37 @@ def checkIfFileExists(id):
 
 @app.route("/package/<id>")
 def getPackage(id):
+    # still need to fix content field
     try:
         if (checkIfFileExists(id)):
-            return {'metadata': {"Name": history[id][-1]["Name"], "Version": history[id][-1]["Version"], "ID": id}, "data": {"Content": "Stuff"}}, 200
+            storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
+            bucketName = os.getenv("BUCKET_NAME")
+            bucket = storageClient.bucket(bucketName)
+            downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
+            unzipPath = str(os.path.join(downloadPath, id))
+
+            if not os.path.exists(downloadPath):
+                os.makedirs(downloadPath)
+                
+            fileToDownload = bucket.blob(id) # name of storage object goes here
+            newFile = str(os.path.join(downloadPath, id + ".zip"))
+            fileToDownload.download_to_filename(newFile) # path to local file
+
+            with open(newFile, "rb") as fptr:
+                data = fptr.read()
+                encodedStr = base64.b64encode(data)
+
+            with zipfile.ZipFile(newFile, "r") as zipRef:
+                zipRef.extractall(unzipPath)
+
+            jsonFile = str(os.path.join(unzipPath, "package.json"))
+            fptr = open(jsonFile)
+            jsonData = json.load(fptr)
+            repoUrl = jsonData["homepage"]
+
+            actionHistory[id].append((datetime.now(), "GET"))
+        
+            return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr, "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
         else:
             return {'code': -1, 'message': "An error occurred while retrieving package"}, 500
     except:
@@ -36,8 +63,12 @@ def putPackage(id):
     try:
         res = request.get_json(force=True)
         if (checkIfFileExists(id)):
-            #update hist dict with new data
-            history[id].append({"Name": res["Data"]["metadata"]["Name"], "ID": res["Data"]["metadata"]["ID"], "Version": res["Data"]["metadata"]["Version"]})
+            packageList[id] = {"Name": res["metadata"]["Name"], "ID": res["metadata"]["ID"], "Version": res["metadata"]["Version"]}
+            actionHistory[id].append((datetime.now(), "UPDATE"))
+            zipEncodedStr = res["data"]["Content"]
+            zipDecoded = base64.b64decode(zipEncodedStr)
+            #create a zip file to pass in to update
+            appService.update()
             return 200
 
         return 400
@@ -47,10 +78,12 @@ def putPackage(id):
 @app.route("/package/<id>", methods=['DELETE'])
 def delPackageVers(id):
     try:
-        if (checkIfFileExists(id)):
-            history[id].pop(-1)
-            if len(history[id]) == 0:
-                history.pop(id)
+        storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
+        bucketName = os.getenv("BUCKET_NAME")
+        bucket = storageClient.bucket(bucketName)
+        if (packageList.has_key(id)):
+            blob = bucket.blob(id)
+            blob.delete()
             return 200
         return 400
     except:
@@ -70,9 +103,12 @@ def ratePackage(id):
                 os.makedirs(downloadPath)
 
             fileToDownload = bucket.blob(id)
-            fileToDownload.download_to_filename(downloadPath + "/" + id)
+            fileDownloadPath = str(os.path.join(downloadPath, id))
+            fileToDownload.download_to_filename(fileDownloadPath)
             
             res = appService.rate(id)
+
+            actionHistory[id].append((datetime.now(), "RATE"))
 
             return {"RampUp": res[0][1], "Correctness": res[0][2], "BusFactor": res[0][3], "ResponsiveMaintainer": res[0][4], "LicenseScore": res[0][5], "GoodPinningPractice": "Test"}, 200
         return 400
@@ -83,47 +119,74 @@ def ratePackage(id):
 def getPackageByName(name):
     try:
         jsonOut = []
-        for x in history:
-            if history[x][0]["Name"] == name:
-                for x in history[x]:
-                    jsonOut.append({"Date": datetime.now(), "PackageMetadata": x})
-                    # return all versions
-                    return jsonOut, 200
-            else:
-                return 400
+        for id, info in packageList.items():
+            if (info["Name"] == name):
+                for y in actionHistory[id]:
+                    jsonOut.append({"Date": y[0], "PackageMetadata": info, "Action": y[1]})
+        
+        if not jsonOut:
+            return 400
+        
+        return jsonOut, 200
+        
     except:
         return {'code': -1, 'message': "An unexpected error occurred"}, 500
 
 @app.route("/package/byName/<name>", methods=['DELETE'])
 def delAllPackageVers(name):
-    for x in history:
-        if history[x][0]["Name"] == name:
-            history.pop(x)
-            return 200
+    storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
+    bucketName = os.getenv("BUCKET_NAME")
+    bucket = storageClient.bucket(bucketName)
+    deleted = False
+
+    for id, info in packageList.items():
+        if (info["Name"] == name):
+            actionHistory.pop(id)
+            packageList.pop(id)
+            blob = bucket.blob(id)
+            blob.delete()
+            deleted = True
+
+    if deleted:
+        return 200
+    
     return 400
 
 @app.route("/package", methods=['POST'])
 def createPackage():
     try:
         data = request.get_json(force=True)
-        bytes = data["data"]["Content"]
+        encString = data["data"]["Content"]
+        zipDecoded = base64.b64decode(encString)
 
-        currentDir = os.getcwd()
         newDir = "new_zips"
-        newPath = os.path.join(currentDir, newDir)
+        newPath = str(os.path.join(os.getcwd(), newDir))
 
         if not os.path.exists(newPath):
             os.makedirs(newPath)
+        
+        if checkIfFileExists(data["metadata"]["ID"]):
+            return 403
 
-        with zipfile.ZipFile(newPath + "/" + data["metadata"]["ID"], 'w') as zipRef:
-            zipfile.ZipFile.writestr(zipRef, bytes)
-            if checkIfFileExists(data["metadata"]["ID"]):
+        newFile = str(os.path.join(newPath, data["metadata"]["ID"] + ".zip"))
+
+        with open(newFile, 'wb') as fptr:
+            fptr.write(zipDecoded)
+
+        if data["data"].has_key("Content"): # Creation
+            appService.upload(newFile)
+            packageList[data["metadata"]["ID"]] = data["metadata"]
+            actionHistory[data["metadata"]["ID"]].append((datetime.now(), "CREATE"))
+
+        else: # Ingestion
+            if (appService.ingest(newFile)):
+                packageList[data["metadata"]["ID"]] = data["metadata"]
+                actionHistory[data["metadata"]["ID"]].append((datetime.now(), "INGEST"))
+            else:
                 return 403
-            appService.upload(zipRef)
-
-        # Add to history
 
         return {"Name": data["metadata"]["Name"], "Version": "1.0.0", "ID":data["metadata"]["ID"]}, 201
+        
     except:
         return 400
 
@@ -133,7 +196,7 @@ def listPackages():
         offset = request.args.get('offset')
     except:
         offset = 0
-    totalPackages = len(history)
+    totalPackages = len(packageList)
     # need to check what happens if offset isn't provided
     page = 5 * offset
     # sorted dict? return by name?
@@ -141,7 +204,11 @@ def listPackages():
 
 @app.route("/reset", methods=['DELETE'])
 def reset():
-    history.clear()
+    for x in packageList:
+        delPackageVers(x)
+    
+    packageList.clear()
+    actionHistory.clear()
     appService.reset()
 
 

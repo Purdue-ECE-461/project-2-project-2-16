@@ -1,5 +1,5 @@
 swagger: '2.0'
-host: ece461-project-2-16.endpoints.ece-461-project-2-registry.cloud.goog
+
 info:
   contact:
     email: davisjam@purdue.edu
@@ -12,6 +12,9 @@ info:
   termsOfService: 'http://swagger.io/terms/'
   title: ECE 461 - Fall 2021 - Project 2
   version: 2.0.0
+host: ece461-project-2-16.endpoints.ece-461-project-2-registry.cloud.goog
+schemas:
+  - 'http'
 paths:
   /authenticate:
     description: >-

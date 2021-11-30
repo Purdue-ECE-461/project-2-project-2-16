@@ -11,6 +11,9 @@ actionHistory = dict() # maps String id to [(date, action)],...
 
 appService = ApplicationService()
 
+# IDs are always unique strings, and different versions of the same package will have unique IDs
+# Names can be duplicates, IDs cannot
+# If a method isn't specified, it is a GET method
     
 def checkIfFileExists(id):
     storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
@@ -22,6 +25,8 @@ def checkIfFileExists(id):
 
 @app.route("/package/<id>")
 def getPackage(id):
+    # Gets the package from google cloud storage and returns the info about it in metadata
+    # Returns the actual compressed file in the content field as an encrypted base 64 string
     try:
         if (checkIfFileExists(id)):
             storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
@@ -59,6 +64,7 @@ def getPackage(id):
 
 @app.route("/package/<id>", methods=['PUT'])
 def putPackage(id):
+    # Updates a currently existing package with the data from the request
     try:
         res = request.get_json(force=True)
         if (checkIfFileExists(id)):

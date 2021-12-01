@@ -33,19 +33,21 @@ def getPackage(id):
     # Gets the package from google cloud storage and returns the info about it in metadata
     # Returns the actual compressed file in the content field as an encrypted base 64 string
     try:
-        if (checkIfFileExists(id)):
-            storageClient = storage.Client()
-            #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
-            bucketName = "ece-461-project-2-registry"
-            bucket = storageClient.bucket(bucketName)
+        storageClient = storage.Client()
+        #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
+        bucketName = "ece-461-project-2-registry"
+        bucket = storageClient.bucket(bucketName)
+        fileToCheck = bucket.blob(id)
+
+        if (fileToCheck.exists()):
             downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
             unzipPath = str(os.path.join(downloadPath, id))
 
             if not os.path.exists(downloadPath):
                 os.makedirs(downloadPath)
                 
-            fileToDownload = bucket.blob(id) # name of storage object goes here
-            newFile = str(os.path.join(downloadPath, id + ".zip"))
+            fileToDownload = fileToCheck # name of storage object goes here
+            newFile = str(os.path.join(downloadPath, id))
             fileToDownload.download_to_filename(newFile) # path to local file
 
             with open(newFile, "rb") as fptr:

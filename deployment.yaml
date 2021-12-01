@@ -1,14 +1,15 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
   annotations:
-    deployment.kubernetes.io/revision: "1"
-  creationTimestamp: "2021-12-01T03:59:27Z"
-  generation: 1
+    cloud.google.com/neg: '{"ingress":true}'
+  creationTimestamp: "2021-12-01T04:03:26Z"
+  finalizers:
+  - service.kubernetes.io/load-balancer-cleanup
   labels:
     app: nginx-1
   managedFields:
-  - apiVersion: apps/v1
+  - apiVersion: v1
     fieldsType: FieldsV1
     fieldsV1:
       f:metadata:
@@ -16,125 +17,57 @@ metadata:
           .: {}
           f:app: {}
       f:spec:
-        f:progressDeadlineSeconds: {}
-        f:replicas: {}
-        f:revisionHistoryLimit: {}
-        f:selector: {}
-        f:strategy:
-          f:rollingUpdate:
+        f:externalTrafficPolicy: {}
+        f:ports:
+          .: {}
+          k:{"port":80,"protocol":"TCP"}:
             .: {}
-            f:maxSurge: {}
-            f:maxUnavailable: {}
-          f:type: {}
-        f:template:
-          f:metadata:
-            f:labels:
-              .: {}
-              f:app: {}
-          f:spec:
-            f:containers:
-              k:{"name":"ece-461-api-sha256-1"}:
-                .: {}
-                f:image: {}
-                f:imagePullPolicy: {}
-                f:name: {}
-                f:resources: {}
-                f:terminationMessagePath: {}
-                f:terminationMessagePolicy: {}
-            f:dnsPolicy: {}
-            f:restartPolicy: {}
-            f:schedulerName: {}
-            f:securityContext: {}
-            f:terminationGracePeriodSeconds: {}
+            f:port: {}
+            f:protocol: {}
+            f:targetPort: {}
+        f:selector:
+          .: {}
+          f:app: {}
+        f:sessionAffinity: {}
+        f:type: {}
     manager: GoogleCloudConsole
     operation: Update
-    time: "2021-12-01T03:59:27Z"
-  - apiVersion: apps/v1
+    time: "2021-12-01T04:03:26Z"
+  - apiVersion: v1
     fieldsType: FieldsV1
     fieldsV1:
       f:metadata:
-        f:annotations:
+        f:finalizers:
           .: {}
-          f:deployment.kubernetes.io/revision: {}
+          v:"service.kubernetes.io/load-balancer-cleanup": {}
       f:status:
-        f:availableReplicas: {}
-        f:conditions:
-          .: {}
-          k:{"type":"Available"}:
-            .: {}
-            f:lastTransitionTime: {}
-            f:lastUpdateTime: {}
-            f:message: {}
-            f:reason: {}
-            f:status: {}
-            f:type: {}
-          k:{"type":"Progressing"}:
-            .: {}
-            f:lastTransitionTime: {}
-            f:lastUpdateTime: {}
-            f:message: {}
-            f:reason: {}
-            f:status: {}
-            f:type: {}
-        f:observedGeneration: {}
-        f:readyReplicas: {}
-        f:replicas: {}
-        f:unavailableReplicas: {}
-        f:updatedReplicas: {}
+        f:loadBalancer:
+          f:ingress: {}
     manager: kube-controller-manager
     operation: Update
-    time: "2021-12-01T04:00:36Z"
-  name: nginx-1
+    time: "2021-12-01T04:04:12Z"
+  name: nginx-1-service
   namespace: default
-  resourceVersion: "1742"
-  uid: badc323a-c495-497e-bf6e-e88971f1385a
+  resourceVersion: "3261"
+  uid: ef224e3d-4a49-412f-a296-bdfbc4c8f071
 spec:
-  progressDeadlineSeconds: 600
-  replicas: 3
-  revisionHistoryLimit: 10
+  clusterIP: 10.64.12.182
+  clusterIPs:
+  - 10.64.12.182
+  externalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - nodePort: 31131
+    port: 80
+    protocol: TCP
+    targetPort: 8081
   selector:
-    matchLabels:
-      app: nginx-1
-  strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
-  template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: nginx-1
-    spec:
-      containers:
-      - image: us-central1-docker.pkg.dev/x-ripple-333802/ece-461-project-2-repo/ece-461-api@sha256:45b4bc70fb036f3d6fd44331dbd74900c4d4eb165eaddc39e60e668a7ec0bed8
-        imagePullPolicy: IfNotPresent
-        name: ece-461-api-sha256-1
-        resources: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
-      dnsPolicy: ClusterFirst
-      restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: {}
-      terminationGracePeriodSeconds: 30
+    app: nginx-1
+  sessionAffinity: None
+  type: LoadBalancer
 status:
-  availableReplicas: 1
-  conditions:
-  - lastTransitionTime: "2021-12-01T03:59:27Z"
-    lastUpdateTime: "2021-12-01T03:59:27Z"
-    message: Deployment does not have minimum availability.
-    reason: MinimumReplicasUnavailable
-    status: "False"
-    type: Available
-  - lastTransitionTime: "2021-12-01T03:59:27Z"
-    lastUpdateTime: "2021-12-01T04:00:36Z"
-    message: ReplicaSet "nginx-1-579fc6b79" is progressing.
-    reason: ReplicaSetUpdated
-    status: "True"
-    type: Progressing
-  observedGeneration: 1
-  readyReplicas: 1
-  replicas: 3
-  unavailableReplicas: 2
-  updatedReplicas: 3
+  loadBalancer:
+    ingress:
+    - ip: 34.135.185.181

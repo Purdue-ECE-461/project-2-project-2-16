@@ -25,7 +25,6 @@ class ApplicationService:
         for x in packageList:
             splitString = x.split("/")
             fileToUpload = bucket.blob(splitString[-1]) # name of storage object goes here
-            raise Exception('Gets bucket blob!')
             fileToUpload.upload_from_filename(x) # path to local file
         pass
 

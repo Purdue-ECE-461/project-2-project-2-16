@@ -205,6 +205,7 @@ def createPackage():
             appService.upload(files)
             
             packageList[data["metadata"]["ID"]] = data["metadata"]
+            actionHistory[data["metadata"]["ID"]] = []
             actionHistory[data["metadata"]["ID"]].append((datetime.now(), "CREATE"))
 
         else: # Ingestion

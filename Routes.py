@@ -62,7 +62,7 @@ def getPackage(id):
 
             actionHistory[id].append((datetime.now(), "GET"))
         
-            return Response({'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr, "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200)
+            return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr, "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
         else:
             return {'code': -1, 'message': "An error occurred while retrieving package"}, 500
     except:
@@ -193,7 +193,7 @@ def createPackage():
         if data["metadata"]["ID"] in packageList:
             return 403
 
-        newFile = str(os.path.join(newPath, data["metadata"]["ID"] + ".zip"))
+        newFile = str(os.path.join(newPath, data["metadata"]["ID"] + data["metadata"]["Version"] + ".zip"))
 
         with open(newFile, 'wb') as fptr:
             fptr.write(zipDecoded)
@@ -209,9 +209,9 @@ def createPackage():
             actionHistory[data["metadata"]["ID"]].append((datetime.now(), "CREATE"))
 
         else: # Ingestion
-            return {"test": "ingestion"}
             if (appService.ingest(newFile)):
                 packageList[data["metadata"]["ID"]] = data["metadata"]
+                actionHistory[data["metadata"]["ID"]] = []
                 actionHistory[data["metadata"]["ID"]].append((datetime.now(), "INGEST"))
             else:
                 return 403

@@ -218,7 +218,7 @@ def createPackage():
         return {"Name": data["metadata"]["Name"], "Version": "1.0.0", "ID":data["metadata"]["ID"]}, 201
         
     except Exception as e:
-        return {"Exception": e}, 400
+        return {"Exception": str(e)}, 400
 
 @app.route("/packages", methods=['POST'])
 def listPackages():

@@ -200,12 +200,14 @@ def createPackage():
 
         
         if "Content" in data["data"]: # Creation
+            return {"test": "creation"}
             appService.upload(newFile)
             
             packageList[data["metadata"]["ID"]] = data["metadata"]
             actionHistory[data["metadata"]["ID"]].append((datetime.now(), "CREATE"))
 
         else: # Ingestion
+            return {"test": "ingestion"}
             if (appService.ingest(newFile)):
                 packageList[data["metadata"]["ID"]] = data["metadata"]
                 actionHistory[data["metadata"]["ID"]].append((datetime.now(), "INGEST"))

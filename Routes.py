@@ -203,7 +203,6 @@ def createPackage():
             files = []
             files.append(newFile)
             appService.upload(files)
-            raise Exception('Uploads bucket blob!')
             
             packageList[data["metadata"]["ID"]] = data["metadata"]
             actionHistory[data["metadata"]["ID"]].append((datetime.now(), "CREATE"))

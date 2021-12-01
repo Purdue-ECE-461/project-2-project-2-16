@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, Response
 from ApplicationService import *
 from google.cloud import storage
 import zipfile
@@ -62,7 +62,7 @@ def getPackage(id):
 
             actionHistory[id].append((datetime.now(), "GET"))
         
-            return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr, "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
+            return Response({'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr, "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200)
         else:
             return {'code': -1, 'message': "An error occurred while retrieving package"}, 500
     except:
@@ -190,7 +190,7 @@ def createPackage():
         if not os.path.exists(newPath):
             os.makedirs(newPath)
         
-        if checkIfFileExists(data["metadata"]["ID"]):
+        if data["metadata"]["ID"] in packageList:
             return 403
 
         newFile = str(os.path.join(newPath, data["metadata"]["ID"] + ".zip"))
@@ -210,10 +210,10 @@ def createPackage():
             else:
                 return 403
 
-        return {"Name": data["metadata"]["Name"], "Version": "1.0.0", "ID":data["metadata"]["ID"]}, 201
+        return Response({"Name": data["metadata"]["Name"], "Version": "1.0.0", "ID":data["metadata"]["ID"]}, 201)
         
     except:
-        return 400
+        return Response({"Warning": "Exception occured in create"}, 400)
 
 @app.route("/packages", methods=['POST'])
 def listPackages():
@@ -239,6 +239,6 @@ def reset():
 
 
 if __name__ == '__main__':
-    app.run(host="localhost", port=5000, debug=True)
+    app.run(host="localhost", port=8000, debug=True)
 
 

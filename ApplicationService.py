@@ -12,7 +12,7 @@ class ApplicationService:
         self.logger = None
         self.scorer = None
         self.authService = None
-        load_dotenv()
+        self.bucketName = "ece-461-project-2-registry"
         pass
 
     def upload(self, packageList, debloatBool = False):
@@ -20,8 +20,8 @@ class ApplicationService:
         # upload files one at a time or in a zip? *I'm thinking a zip*
         #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
         storageClient = storage.Client()
-        bucketName = "ece-461-project-2-registry"
-        bucket = storageClient.bucket(bucketName)
+        #bucketName = "ece-461-project-2-registry"
+        bucket = storageClient.bucket(self.bucketName)
         for x in packageList:
             splitString = x.split("/")
             fileToUpload = bucket.blob(splitString[-1]) # name of storage object goes here
@@ -30,8 +30,9 @@ class ApplicationService:
 
     def update(self, packageList, debloatBool = False):
         # update a list of packages in registry with an optional debloat parameter
-        storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
-        bucketName = os.getenv("BUCKET_NAME")
+        storageClient = storage.Client()
+        #bucketName = "ece-461-project-2-registry"
+        bucket = storageClient.bucket(self.bucketName)
         bucket = storageClient.bucket(bucketName)
         for p in packageList:
             splitString = p.split("/")
@@ -75,9 +76,9 @@ class ApplicationService:
 
     def download(self, packageList):
         # download a list of packages from the existing repo
-        storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
-        bucketName = os.getenv("BUCKET_NAME")
-        bucket = storageClient.bucket(bucketName)
+        storageClient = storage.Client()
+        #bucketName = "ece-461-project-2-registry"
+        bucket = storageClient.bucket(self.bucketName)
         downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
 
         if not os.path.exists(downloadPath):

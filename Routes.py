@@ -24,7 +24,7 @@ def checkIfFileExists(id):
 
     return fileToCheck.exists()
 
-@app.route("/")
+@app.route("/test")
 def hello_world():
     return 'Hello World!'
 
@@ -100,8 +100,9 @@ def putPackage(id):
 @app.route("/package/<id>", methods=['DELETE'])
 def delPackageVers(id):
     try:
-        storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
-        bucketName = os.getenv("BUCKET_NAME")
+        storageClient = storage.Client()
+        #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
+        bucketName = "ece-461-project-2-registry"
         bucket = storageClient.bucket(bucketName)
         if (packageList.has_key(id)):
             blob = bucket.blob(id)
@@ -116,8 +117,9 @@ def delPackageVers(id):
 def ratePackage(id):
     try:
         if (checkIfFileExists(id)):
-            storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
-            bucketName = os.getenv("BUCKET_NAME")
+            storageClient = storage.Client()
+            #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
+            bucketName = "ece-461-project-2-registry"
             bucket = storageClient.bucket(bucketName)
             downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
 
@@ -156,8 +158,9 @@ def getPackageByName(name):
 
 @app.route("/package/byName/<name>", methods=['DELETE'])
 def delAllPackageVers(name):
-    storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
-    bucketName = os.getenv("BUCKET_NAME")
+    storageClient = storage.Client()
+    #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
+    bucketName = "ece-461-project-2-registry"
     bucket = storageClient.bucket(bucketName)
     deleted = False
 

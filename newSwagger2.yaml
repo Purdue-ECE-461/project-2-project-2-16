@@ -7,7 +7,7 @@ info:
     email: davisjam@purdue.edu
     name: Prof. Davis
     url: http://davisjam.github.io
-host: ece-461-project-2-registry.appspot.com
+host: ece-461-api.endpoints.x-ripple-333802.cloud.goog
 basePath: /
 securityDefinitions: {}
 schemes:

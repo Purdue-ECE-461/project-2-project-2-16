@@ -22,6 +22,7 @@ class ApplicationService:
         storageClient = storage.Client()
         #bucketName = "ece-461-project-2-registry"
         bucket = storageClient.bucket(self.bucketName)
+        raise Exception('Bucket accessed!')
         for x in packageList:
             splitString = x.split("/")
             fileToUpload = bucket.blob(splitString[-1]) # name of storage object goes here

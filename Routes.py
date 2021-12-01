@@ -23,6 +23,10 @@ def checkIfFileExists(id):
 
     return fileToCheck.exists()
 
+@app.route("/")
+def hello_world():
+    return 'Hello World!'
+
 @app.route("/package/<id>")
 def getPackage(id):
     # Gets the package from google cloud storage and returns the info about it in metadata

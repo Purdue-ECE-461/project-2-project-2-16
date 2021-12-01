@@ -16,8 +16,9 @@ appService = ApplicationService()
 # If a method isn't specified, it is a GET method
     
 def checkIfFileExists(id):
-    storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
-    bucketName = os.getenv("BUCKET_NAME")
+    #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
+    storageClient = storage.Client()
+    bucketName = "ece-461-project-2-registry"
     bucket = storageClient.bucket(bucketName)
     fileToCheck = bucket.blob(id)
 
@@ -33,8 +34,9 @@ def getPackage(id):
     # Returns the actual compressed file in the content field as an encrypted base 64 string
     try:
         if (checkIfFileExists(id)):
-            storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
-            bucketName = os.getenv("BUCKET_NAME")
+            storageClient = storage.Client()
+            #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
+            bucketName = "ece-461-project-2-registry"
             bucket = storageClient.bucket(bucketName)
             downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
             unzipPath = str(os.path.join(downloadPath, id))
@@ -64,7 +66,7 @@ def getPackage(id):
         else:
             return {'code': -1, 'message': "An error occurred while retrieving package"}, 500
     except:
-        return {'code': -1, 'message': "An error occurred while retrieving package"}, 500
+        return {'code': -1, 'message': "An exception occurred while retrieving package"}, 500
 
 @app.route("/package/<id>", methods=['PUT'])
 def putPackage(id):

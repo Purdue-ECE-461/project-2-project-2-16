@@ -18,8 +18,9 @@ class ApplicationService:
     def upload(self, packageList, debloatBool = False):
         # take a list of packages and upload them all to the registry with an optional debloat parameter
         # upload files one at a time or in a zip? *I'm thinking a zip*
-        storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
-        bucketName = os.getenv("BUCKET_NAME")
+        #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
+        storageClient = storage.Client()
+        bucketName = "ece-461-project-2-registry"
         bucket = storageClient.bucket(bucketName)
         for x in packageList:
             splitString = x.split("/")

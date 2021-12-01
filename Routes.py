@@ -198,6 +198,7 @@ def createPackage():
         with open(newFile, 'wb') as fptr:
             fptr.write(zipDecoded)
 
+        return {"test": "test"}, 401
         if data["data"].has_key("Content"): # Creation
             appService.upload(newFile)
             packageList[data["metadata"]["ID"]] = data["metadata"]

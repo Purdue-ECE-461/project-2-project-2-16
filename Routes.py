@@ -195,7 +195,7 @@ def createPackage():
         if data["metadata"]["ID"] in packageList:
             return 403
 
-        newFile = str(os.path.join(newPath, data["metadata"]["ID"] + data["metadata"]["Version"] + ".zip"))
+        newFile = str(os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip"))
 
         with open(newFile, 'wb') as fptr:
             fptr.write(zipDecoded)
@@ -218,7 +218,7 @@ def createPackage():
             else:
                 return 403
 
-        return {"Name": data["metadata"]["Name"], "Version": "1.0.0", "ID":data["metadata"]["ID"]}, 201
+        return {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": data["metadata"]["Name"] + data["metadata"]["Version"]}, 201
         
     except Exception as e:
         return {"Exception": str(e)}, 400

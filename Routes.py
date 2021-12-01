@@ -47,8 +47,9 @@ def getPackage(id):
                 os.makedirs(downloadPath)
                 
             fileToDownload = fileToCheck # name of storage object goes here
+            fileToDownload.download_to_filename(downloadPath) # path to local file
+
             newFile = str(os.path.join(downloadPath, id))
-            fileToDownload.download_to_filename(newFile) # path to local file
 
             with open(newFile, "rb") as fptr:
                 data = fptr.read()

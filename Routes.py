@@ -199,8 +199,7 @@ def createPackage():
             fptr.write(zipDecoded)
 
         
-        if data["data"].has_key("Content"): # Creation
-            return {"test": "test"}, 401
+        if "Content" in data["data"]: # Creation
             appService.upload(newFile)
             
             packageList[data["metadata"]["ID"]] = data["metadata"]
@@ -213,10 +212,10 @@ def createPackage():
             else:
                 return 403
 
-        return Response({"Name": data["metadata"]["Name"], "Version": "1.0.0", "ID":data["metadata"]["ID"]}, 201)
+        return {"Name": data["metadata"]["Name"], "Version": "1.0.0", "ID":data["metadata"]["ID"]}, 201
         
     except:
-        return Response({"Warning": "Exception occured in create"}, 400)
+        return {"Warning": "Exception occured in create"}, 400
 
 @app.route("/packages", methods=['POST'])
 def listPackages():

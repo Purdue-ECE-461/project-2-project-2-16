@@ -200,7 +200,9 @@ def createPackage():
 
         
         if "Content" in data["data"]: # Creation
-            appService.upload(newFile)
+            files = []
+            files.append(newFile)
+            appService.upload(files)
             
             packageList[data["metadata"]["ID"]] = data["metadata"]
             actionHistory[data["metadata"]["ID"]].append((datetime.now(), "CREATE"))

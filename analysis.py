@@ -1,4 +1,3 @@
-import git
 import requests
 import subprocess
 import os

@@ -18,3 +18,11 @@ spec:
       - name: http
         containerPort: 8080
         protocol: TCP
+    - name: esp
+      image: gcr.io/endpoints-release/endpoints-runtime:1
+      args: [
+        "--http_port=8081",
+        "--backend=127.0.0.1:8080",
+        "--service=ece-461-project-2-registry.appspot.com",
+        "--rollout_strategy=managed"
+  ]

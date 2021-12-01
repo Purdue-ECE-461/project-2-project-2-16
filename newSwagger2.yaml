@@ -50,7 +50,7 @@ paths:
         required: true
         description: ''
         schema:
-          type: array
+          type: object
           items:
             $ref: '#/definitions/PackageQuery'
       responses:

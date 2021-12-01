@@ -121,7 +121,7 @@ spec:
         image: gcr.io/endpoints-release/endpoints-runtime:1
         args: [
           "--http_port=8081",
-          "--backend=127.0.0.1:8080",
+          "--backend=127.0.0.1:5000",
           "--service=nginx-1-service",
           "--rollout_strategy=managed"
         ]

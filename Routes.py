@@ -1,4 +1,4 @@
-from flask import Flask, request, Response
+from flask import Flask, request
 from ApplicationService import *
 from google.cloud import storage
 import zipfile
@@ -67,7 +67,7 @@ def getPackage(id):
 
             actionHistory[id].append((datetime.now(), "GET"))
         
-            return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr, "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
+            return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr.decode('ascii'), "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
         else:
             return {'code': -1, 'message': "An error occurred while retrieving package, package does not exist", "packageList": packageList}, 500
     except Exception as e:
@@ -257,10 +257,7 @@ def splitVersionString(version):
 def versionCheck(versionTestAgainst, versionToTest):
     if "-" in versionTestAgainst: # bounded version range
         ranges = versionTestAgainst.split("-")
-        lowVersion = splitVersionString(ranges[0])
-        highVersion = splitVersionString(ranges[1])
-        versionToTestDict = splitVersionString(versionToTest)
-        if versionToTest >= lowRange and versionToTest <= highRange:
+        if versionToTest >= ranges[0] and versionToTest <= ranges[1]:
             return True
 
     elif "^" in versionTestAgainst: # carat version range
@@ -268,6 +265,18 @@ def versionCheck(versionTestAgainst, versionToTest):
 
     elif "~" in versionTestAgainst: # tilde version range
         lowRange = versionTestAgainst[1:]
+        lowDict = splitVersionString(lowRange)
+        highDict = splitVersionString(lowRange)
+        if lowDict["minor"] > 0 or lowDict["patch"] > 0:
+            highDict["minor"] = lowDict["minor"] + 1
+        else:
+            highDict["major"] = lowDict["major"] + 1
+        
+        lowVersion = str(lowDict["major"]) + "." + str(lowDict["minor"]) + "." + str(lowDict["patch"])
+        highVersion = str(highDict["major"]) + "." + str(highDict["minor"]) + "." + str(highDict["patch"])
+
+        if versionToTest >= lowVersion and versionToTest < highVersion:
+            return True
 
     else: # exact version
         print("test")

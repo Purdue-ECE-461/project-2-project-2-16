@@ -41,21 +41,23 @@ def getPackage(id):
 
         if (fileToCheck.exists()):
             downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
-            unzipPath = str(os.path.join(downloadPath, id))
+            downloadFile = str(os.path.join(downloadPath, id + ".zip"))
 
             if not os.path.exists(downloadPath):
                 os.makedirs(downloadPath)
                 
             fileToDownload = fileToCheck # name of storage object goes here
-            fileToDownload.download_to_filename(downloadPath) # path to local file
+            fileToDownload.download_to_filename(downloadFile) # path to local file
 
-            newFile = str(os.path.join(downloadPath, id))
+            #newFile = str(os.path.join(downloadPath, id))
 
-            with open(newFile, "rb") as fptr:
+            with open(downloadFile, "rb") as fptr:
                 data = fptr.read()
                 encodedStr = base64.b64encode(data)
 
-            with zipfile.ZipFile(newFile, "r") as zipRef:
+            unzipPath = str(os.path.join(downloadPath, id))
+
+            with zipfile.ZipFile(downloadFile, "r") as zipRef:
                 zipRef.extractall(unzipPath)
 
             jsonFile = str(os.path.join(unzipPath, "package.json"))

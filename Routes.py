@@ -38,7 +38,7 @@ def getPackage(id):
         bucket = storageClient.bucket(bucketName)
         fileToCheck = bucket.blob(id + ".zip")
 
-        if (fileToCheck.exists() and id in packageList):
+        if (id in packageList):
             downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
             downloadFile = str(os.path.join(downloadPath, id + ".zip"))
 
@@ -71,7 +71,7 @@ def getPackage(id):
         
             return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr, "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
         else:
-            return {'code': -1, 'message': "An error occurred while retrieving package"}, 500
+            return {'code': -1, 'message': "An error occurred while retrieving package, package does not exist", "packageList": packageList}, 500
     except Exception as e:
         return {'code': -1, 'message': "An exception occurred while retrieving package", 'exception': str(e)}, 500
 
@@ -246,6 +246,22 @@ def createPackage():
     except Exception as e:
         return {"Exception": str(e)}, 400
 
+def versionCheck(versionTestAgainst, versionToTest):
+    if "-" in versionTestAgainst: # bounded version range
+        ranges = versionTestAgainst.split("-")
+        lowRange = ranges[0]
+        highRange = ranges[1]
+        if versionToTest >= lowRange and versionToTest <= highRange:
+            return True
+
+    elif "^" in versionTestAgainst: # carat version range
+        print("test")
+
+    elif "~" in versionTestAgainst: # tilde version range
+        print("test")
+    else: # exact version
+        print("test")
+        
 @app.route("/packages", methods=['POST'])
 def listPackages():
     output = []

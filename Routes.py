@@ -167,7 +167,6 @@ def getPackageByName(name):
 @app.route("/package/byName/<name>", methods=['DELETE'])
 def delAllPackageVers(name):
     storageClient = storage.Client()
-    #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
     bucketName = "ece-461-project-2-registry"
     bucket = storageClient.bucket(bucketName)
     deleted = False
@@ -195,10 +194,12 @@ def createPackage():
         newDir = "new_zips"
         newPath = str(os.path.join(os.getcwd(), newDir))
 
+        id = data["metadata"]["Name"] + data["metadata"]["Version"]
+
         if not os.path.exists(newPath):
             os.makedirs(newPath)
         
-        if data["metadata"]["ID"] in packageList:
+        if id in packageList:
             return 403
 
         newFile = str(os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip"))
@@ -212,9 +213,9 @@ def createPackage():
             files.append(newFile)
             appService.upload(files)
             
-            packageList[data["metadata"]["ID"]] = data["metadata"]
-            actionHistory[data["metadata"]["ID"]] = []
-            actionHistory[data["metadata"]["ID"]].append((datetime.now(), "CREATE"))
+            packageList[id] = data["metadata"]
+            actionHistory[id] = []
+            actionHistory[id].append((datetime.now(), "CREATE"))
 
         else: # Ingestion
             if (appService.ingest(newFile)):

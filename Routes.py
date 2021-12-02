@@ -78,12 +78,8 @@ def putPackage(id):
     # Updates a currently existing package with the data from the request
     try:
         res = request.get_json(force=True)
-        storageClient = storage.Client()
-        bucketName = "ece-461-project-2-registry"
-        bucket = storageClient.bucket(bucketName)
-        fileToCheck = bucket.blob(id + ".zip")
 
-        if (fileToCheck.exists()):
+        if (id in packageList):
             if (res["metadata"]["Name"] != packageList[id]["Name"] or res["metadata"]["Version"] != packageList[id]["Version"] or res["metadata"]["ID"] != packageList[id]["ID"]):
                 return {}, 400
             delPackageVers(id) # delete old package
@@ -122,8 +118,8 @@ def delPackageVers(id):
         if (id in packageList):
             blob = bucket.blob(id + ".zip")
             blob.delete()
-            return '', 200
-        return '', 400
+            return {}, 200
+        return {}, 400
     except Exception as e:
         return {"exception": str(e)}, 400
         

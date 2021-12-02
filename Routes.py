@@ -67,8 +67,8 @@ def getPackage(id):
             except:
                 repoUrl = "No URL Found."
 
-            raise Exception("before appending actionHistory")
             actionHistory[id].append((datetime.now(), "GET"))
+            raise Exception("after appending actionHistory")
         
             return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr, "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
         else:
@@ -87,23 +87,29 @@ def putPackage(id):
         fileToCheck = bucket.blob(id + ".zip")
 
         if (fileToCheck.exists()):
-            packageList[id] = {"Name": res["metadata"]["Name"], "ID": res["metadata"]["ID"], "Version": res["metadata"]["Version"]}
-            actionHistory[id].append((datetime.now(), "UPDATE"))
-            zipEncodedStr = res["data"]["Content"]
-            zipDecoded = base64.b64decode(zipEncodedStr)
-            
+            if (res["metadata"]["Name"] != packageList[id]["Name"] or res["metadata"]["Version"] != packageList[id]["Version"] or res["metadata"]["ID"] != packageList[id]["ID"]):
+                return 400
+            delPackageVers(id) # delete old package
+
             newDir = "new_zips"
             newPath = str(os.path.join(os.getcwd(), newDir))
 
             if not os.path.exists(newPath):
                 os.makedirs(newPath)
-            
-            newFile = str(os.path.join(newPath, res["metadata"]["ID"] + ".zip"))
+
+            newFile = str(os.path.join(newPath, id + ".zip"))
+
+            zipEncodedStr = res["data"]["Content"]
+            zipDecoded = base64.b64decode(zipEncodedStr)
 
             with open(newFile, 'wb') as fptr:
                 fptr.write(zipDecoded)
-
-            appService.update(newFile)
+   
+            files = []
+            files.append(newFile)
+            appService.upload(files)
+            actionHistory[id].append((datetime.now(), "UPDATE"))
+            
             return 200
 
         return 400
@@ -221,19 +227,19 @@ def createPackage():
             files.append(newFile)
             appService.upload(files)
             
-            packageList[id] = data["metadata"]
+            packageList[id] = {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}
             actionHistory[id] = []
             actionHistory[id].append((datetime.now(), "CREATE"))
 
         else: # Ingestion
             if (appService.ingest(newFile)):
-                packageList[data["metadata"]["ID"]] = data["metadata"]
-                actionHistory[data["metadata"]["ID"]] = []
-                actionHistory[data["metadata"]["ID"]].append((datetime.now(), "INGEST"))
+                packageList[id] = {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}
+                actionHistory[id] = []
+                actionHistory[id].append((datetime.now(), "CREATE"))
             else:
                 return 403
 
-        return {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": data["metadata"]["Name"] + data["metadata"]["Version"]}, 201
+        return {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, 201
         
     except Exception as e:
         return {"Exception": str(e)}, 400

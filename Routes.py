@@ -65,8 +65,6 @@ def getPackage(id):
             except:
                 repoUrl = "No URL Found."
 
-            return {"ID": id, "Name": packageList[id]["Name"]}
-
             actionHistory[id].append((datetime.now(), "GET"))
         
             return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr, "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
@@ -258,10 +256,11 @@ def versionCheck(versionTestAgainst, versionToTest):
         print("test")
 
     elif "~" in versionTestAgainst: # tilde version range
-        print("test")
+        lowRange = versionTestAgainst[1:]
+
     else: # exact version
         print("test")
-        
+
 @app.route("/packages", methods=['POST'])
 def listPackages():
     output = []

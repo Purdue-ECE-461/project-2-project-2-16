@@ -68,7 +68,6 @@ def getPackage(id):
                 repoUrl = "No URL Found."
 
             actionHistory[id].append((datetime.now(), "GET"))
-            raise Exception("after appending actionHistory")
         
             return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr, "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
         else:
@@ -123,8 +122,8 @@ def delPackageVers(id):
         #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
         bucketName = "ece-461-project-2-registry"
         bucket = storageClient.bucket(bucketName)
-        if (packageList.has_key(id)):
-            blob = bucket.blob(id)
+        if (id in packageList):
+            blob = bucket.blob(id + ".zip")
             blob.delete()
             return 200
         return 400
@@ -135,21 +134,24 @@ def delPackageVers(id):
 @app.route("/package/<id>/rate", methods=["GET"])
 def ratePackage(id):
     try:
-        if (checkIfFileExists(id)):
-            storageClient = storage.Client()
-            #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
-            bucketName = "ece-461-project-2-registry"
-            bucket = storageClient.bucket(bucketName)
+        storageClient = storage.Client()
+        bucketName = "ece-461-project-2-registry"
+        bucket = storageClient.bucket(bucketName)
+        fileToCheck = bucket.blob(id + ".zip")
+
+        if (fileToCheck.exists()):
             downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
 
             if not os.path.exists(downloadPath):
                 os.makedirs(downloadPath)
 
-            fileToDownload = bucket.blob(id)
-            fileDownloadPath = str(os.path.join(downloadPath, id))
+            fileToDownload = bucket.blob(id + ".zip")
+            fileDownloadPath = str(os.path.join(downloadPath, id + ".zip"))
             fileToDownload.download_to_filename(fileDownloadPath)
             
-            res = appService.rate(id)
+            files = []
+            files.append(fileDownloadPath)
+            res = appService.rate(files)
 
             actionHistory[id].append((datetime.now(), "RATE"))
 
@@ -187,7 +189,7 @@ def delAllPackageVers(name):
             if (info["Name"] == name):
                 actionHistory.pop(id)
                 packageList.pop(id)
-                blob = bucket.blob(id)
+                blob = bucket.blob(id + ".zip")
                 blob.delete()
                 deleted = True
 

@@ -239,16 +239,27 @@ def createPackage():
             else:
                 return 403
 
-        return {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, 201
+        return {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id, "packageList": packageList}, 201
         
     except Exception as e:
         return {"Exception": str(e)}, 400
 
+def splitVersionString(version):
+    split = version.split('.')
+
+    if len(split) == 1:
+        return {"major": int(split[0]), "minor": 0, "patch": 0}
+    elif len(split) == 2:
+        return {"major": int(split[0]), "minor": int(split[1]), "patch": 0}
+    else:
+        return {"major": int(split[0]), "minor": int(split[1]), "patch": int(split[2])}
+
 def versionCheck(versionTestAgainst, versionToTest):
     if "-" in versionTestAgainst: # bounded version range
         ranges = versionTestAgainst.split("-")
-        lowRange = ranges[0]
-        highRange = ranges[1]
+        lowVersion = splitVersionString(ranges[0])
+        highVersion = splitVersionString(ranges[1])
+        versionToTestDict = splitVersionString(versionToTest)
         if versionToTest >= lowRange and versionToTest <= highRange:
             return True
 

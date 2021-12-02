@@ -118,8 +118,9 @@ def delPackageVers(id):
         if (id in packageList.keys()):
             blob = bucket.blob(id + ".zip")
             blob.delete()
-            raise Exception("blob deleted")
+            #raise Exception("blob deleted")
             return {}, 200
+        raise Exception("400 error code")
         return {}, 400
     except Exception as e:
         return {"exception": str(e)}, 500

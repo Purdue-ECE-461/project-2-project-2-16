@@ -60,10 +60,13 @@ def getPackage(id):
             with zipfile.ZipFile(downloadFile, "r") as zipRef:
                 zipRef.extractall(unzipPath)
 
-            jsonFile = str(os.path.join(unzipPath, "package.json"))
-            fptr = open(jsonFile)
-            jsonData = json.load(fptr)
-            repoUrl = jsonData["homepage"]
+            try:
+                jsonFile = str(os.path.join(unzipPath, "package.json"))
+                fptr = open(jsonFile)
+                jsonData = json.load(fptr)
+                repoUrl = jsonData["homepage"]
+            except:
+                repoUrl = "No URL Found."
 
             actionHistory[id].append((datetime.now(), "GET"))
         

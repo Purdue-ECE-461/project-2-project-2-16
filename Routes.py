@@ -34,10 +34,9 @@ def getPackage(id):
     # Returns the actual compressed file in the content field as an encrypted base 64 string
     try:
         storageClient = storage.Client()
-        #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
         bucketName = "ece-461-project-2-registry"
         bucket = storageClient.bucket(bucketName)
-        fileToCheck = bucket.blob(id)
+        fileToCheck = bucket.blob(id + ".zip")
 
         if (fileToCheck.exists()):
             downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
@@ -68,6 +67,7 @@ def getPackage(id):
             except:
                 repoUrl = "No URL Found."
 
+            raise Exception("before appending actionHistory")
             actionHistory[id].append((datetime.now(), "GET"))
         
             return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr, "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
@@ -81,7 +81,12 @@ def putPackage(id):
     # Updates a currently existing package with the data from the request
     try:
         res = request.get_json(force=True)
-        if (checkIfFileExists(id)):
+        storageClient = storage.Client()
+        bucketName = "ece-461-project-2-registry"
+        bucket = storageClient.bucket(bucketName)
+        fileToCheck = bucket.blob(id + ".zip")
+
+        if (fileToCheck.exists()):
             packageList[id] = {"Name": res["metadata"]["Name"], "ID": res["metadata"]["ID"], "Version": res["metadata"]["Version"]}
             actionHistory[id].append((datetime.now(), "UPDATE"))
             zipEncodedStr = res["data"]["Content"]
@@ -102,8 +107,8 @@ def putPackage(id):
             return 200
 
         return 400
-    except:
-        return 400
+    except Exception as e:
+        return {"exception": str(e)}, 400
 
 @app.route("/package/<id>", methods=['DELETE'])
 def delPackageVers(id):
@@ -117,8 +122,8 @@ def delPackageVers(id):
             blob.delete()
             return 200
         return 400
-    except:
-        return 400
+    except Exception as e:
+        return {"exception": str(e)}, 400
         
 
 @app.route("/package/<id>/rate", methods=["GET"])
@@ -144,8 +149,8 @@ def ratePackage(id):
 
             return {"RampUp": res[0][1], "Correctness": res[0][2], "BusFactor": res[0][3], "ResponsiveMaintainer": res[0][4], "LicenseScore": res[0][5], "GoodPinningPractice": "Test"}, 200
         return 400
-    except:
-        return 500
+    except Exception as e:
+        return {"exception": str(e)}, 500
 
 @app.route("/package/byName/<name>", methods=['GET'])
 def getPackageByName(name):
@@ -161,28 +166,31 @@ def getPackageByName(name):
         
         return jsonOut, 200
         
-    except:
-        return {'code': -1, 'message': "An unexpected error occurred"}, 500
+    except Exception as e:
+        return {'code': -1, 'message': "An unexpected error occurred", "exception": str(e)}, 500
 
 @app.route("/package/byName/<name>", methods=['DELETE'])
 def delAllPackageVers(name):
-    storageClient = storage.Client()
-    bucketName = "ece-461-project-2-registry"
-    bucket = storageClient.bucket(bucketName)
-    deleted = False
+    try:
+        storageClient = storage.Client()
+        bucketName = "ece-461-project-2-registry"
+        bucket = storageClient.bucket(bucketName)
+        deleted = False
 
-    for id, info in packageList.items():
-        if (info["Name"] == name):
-            actionHistory.pop(id)
-            packageList.pop(id)
-            blob = bucket.blob(id)
-            blob.delete()
-            deleted = True
+        for id, info in packageList.items():
+            if (info["Name"] == name):
+                actionHistory.pop(id)
+                packageList.pop(id)
+                blob = bucket.blob(id)
+                blob.delete()
+                deleted = True
 
-    if deleted:
-        return 200
-    
-    return 400
+        if deleted:
+            return 200
+        
+        return 400
+    except Exception as e:
+        return {"exception": str(e)}, 400
 
 @app.route("/package", methods=['POST'])
 def createPackage():

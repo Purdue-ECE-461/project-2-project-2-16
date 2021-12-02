@@ -48,8 +48,6 @@ def getPackage(id):
             fileToDownload = fileToCheck # name of storage object goes here
             fileToDownload.download_to_filename(downloadFile) # path to local file
 
-            #newFile = str(os.path.join(downloadPath, id))
-
             with open(downloadFile, "rb") as fptr:
                 data = fptr.read()
                 encodedStr = base64.b64encode(data)
@@ -68,6 +66,8 @@ def getPackage(id):
                 repoUrl = "No URL Found."
 
             actionHistory[id].append((datetime.now(), "GET"))
+
+            raise Exception("test")
         
             return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr, "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
         else:

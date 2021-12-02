@@ -65,7 +65,7 @@ def getPackage(id):
             except:
                 repoUrl = "No URL Found."
 
-            return {"ID": id}
+            return {"ID": id, "Name": packageList[id]["Name"]}
 
             actionHistory[id].append((datetime.now(), "GET"))
         
@@ -248,24 +248,35 @@ def createPackage():
 
 @app.route("/packages", methods=['POST'])
 def listPackages():
+    output = []
+    count = 0
     try:
         offset = request.args.get('offset')
     except:
-        offset = 0
+        offset = 1
+
+    data = request.get_json(force=True)
+    dataList = json.loads(data)
+    #for x in dataList:
+        
     totalPackages = len(packageList)
-    # need to check what happens if offset isn't provided
     page = 5 * offset
     # sorted dict? return by name?
     return {'offset': {"offsetAct": offset}}
 
 @app.route("/reset", methods=['DELETE'])
 def reset():
-    for x in packageList:
-        delPackageVers(x)
-    
-    packageList.clear()
-    actionHistory.clear()
-    appService.reset()
+    try:
+        for x in packageList:
+            delPackageVers(x)
+        
+        packageList.clear()
+        actionHistory.clear()
+        appService.reset()
+
+        return 200
+    except Exception as e:
+        return {"Exception": str(e)}, 401
 
 
 

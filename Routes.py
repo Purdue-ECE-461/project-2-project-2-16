@@ -38,7 +38,7 @@ def getPackage(id):
         bucket = storageClient.bucket(bucketName)
         fileToCheck = bucket.blob(id + ".zip")
 
-        if (fileToCheck.exists()):
+        if (fileToCheck.exists() and id in packageList):
             downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
             downloadFile = str(os.path.join(downloadPath, id + ".zip"))
 
@@ -66,8 +66,6 @@ def getPackage(id):
                 repoUrl = "No URL Found."
 
             actionHistory[id].append((datetime.now(), "GET"))
-
-            raise Exception("test")
         
             return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr, "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
         else:

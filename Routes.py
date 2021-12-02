@@ -85,7 +85,7 @@ def putPackage(id):
 
         if (fileToCheck.exists()):
             if (res["metadata"]["Name"] != packageList[id]["Name"] or res["metadata"]["Version"] != packageList[id]["Version"] or res["metadata"]["ID"] != packageList[id]["ID"]):
-                return 400
+                return {}, 400
             delPackageVers(id) # delete old package
 
             newDir = "new_zips"
@@ -107,9 +107,9 @@ def putPackage(id):
             appService.upload(files)
             actionHistory[id].append((datetime.now(), "UPDATE"))
             
-            return 200
+            return {}, 200
 
-        return 400
+        return {}, 400
     except Exception as e:
         return {"exception": str(e)}, 400
 
@@ -117,14 +117,13 @@ def putPackage(id):
 def delPackageVers(id):
     try:
         storageClient = storage.Client()
-        #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
         bucketName = "ece-461-project-2-registry"
         bucket = storageClient.bucket(bucketName)
         if (id in packageList):
             blob = bucket.blob(id + ".zip")
             blob.delete()
-            return 200
-        return 400
+            return '', 200
+        return '', 400
     except Exception as e:
         return {"exception": str(e)}, 400
         
@@ -154,7 +153,7 @@ def ratePackage(id):
             actionHistory[id].append((datetime.now(), "RATE"))
 
             return {"RampUp": res[0][1], "Correctness": res[0][2], "BusFactor": res[0][3], "ResponsiveMaintainer": res[0][4], "LicenseScore": res[0][5], "GoodPinningPractice": "Test"}, 200
-        return 400
+        return {}, 400
     except Exception as e:
         return {"exception": str(e)}, 500
 
@@ -168,7 +167,7 @@ def getPackageByName(name):
                     jsonOut.append({"Date": y[0], "PackageMetadata": info, "Action": y[1]})
         
         if not jsonOut:
-            return 400
+            return {}, 400
         
         return jsonOut, 200
         
@@ -192,9 +191,9 @@ def delAllPackageVers(name):
                 deleted = True
 
         if deleted:
-            return 200
+            return {}, 200
         
-        return 400
+        return {}, 400
     except Exception as e:
         return {"exception": str(e)}, 400
 
@@ -214,7 +213,7 @@ def createPackage():
             os.makedirs(newPath)
         
         if id in packageList:
-            return 403
+            return {}, 403
 
         newFile = str(os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip"))
 
@@ -261,7 +260,21 @@ def versionCheck(versionTestAgainst, versionToTest):
             return True
 
     elif "^" in versionTestAgainst: # carat version range
-        print("test")
+        lowRange = versionTestAgainst[1:]
+        lowDict = splitVersionString(lowRange)
+        highDict = splitVersionString(lowRange)
+        if lowDict["major"] > 0:
+            highDict["major"] = lowDict["major"] + 1
+        elif lowDict["minor"] > 0:
+            highDict["minor"] = lowDict["minor"] + 1
+        else:
+            highDict["patch"] = lowDict["patch"] + 1
+
+        lowVersion = str(lowDict["major"]) + "." + str(lowDict["minor"]) + "." + str(lowDict["patch"])
+        highVersion = str(highDict["major"]) + "." + str(highDict["minor"]) + "." + str(highDict["patch"])
+
+        if versionToTest >= lowVersion and versionToTest < highVersion:
+            return True
 
     elif "~" in versionTestAgainst: # tilde version range
         lowRange = versionTestAgainst[1:]
@@ -279,7 +292,10 @@ def versionCheck(versionTestAgainst, versionToTest):
             return True
 
     else: # exact version
-        print("test")
+        if versionToTest == versionTestAgainst:
+            return True
+
+    return False
 
 @app.route("/packages", methods=['POST'])
 def listPackages():

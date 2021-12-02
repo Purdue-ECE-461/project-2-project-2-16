@@ -24,7 +24,7 @@ def checkIfFileExists(id):
 
     return fileToCheck.exists()
 
-@app.route("/test")
+@app.route("/")
 def hello_world():
     return 'Hello World!'
 
@@ -115,13 +115,14 @@ def delPackageVers(id):
         storageClient = storage.Client()
         bucketName = "ece-461-project-2-registry"
         bucket = storageClient.bucket(bucketName)
-        if (id in packageList):
+        if (id in packageList.keys()):
             blob = bucket.blob(id + ".zip")
             blob.delete()
+            raise Exception("blob deleted")
             return {}, 200
         return {}, 400
     except Exception as e:
-        return {"exception": str(e)}, 400
+        return {"exception": str(e)}, 500
         
 
 @app.route("/package/<id>/rate", methods=["GET"])

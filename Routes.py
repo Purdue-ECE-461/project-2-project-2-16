@@ -251,8 +251,8 @@ def createPackage():
                 #    histEntryJsonList.append(json.dumps(x))
                 #parsedData = [json.loads(s) for s in histEntryJsonList]
 
-                with open(newHistFile, 'w') as fptr:
-                    json.dump(histEntry, fptr)
+                #with open(newHistFile, 'w') as fptr:
+                #    json.dump(histEntry, fptr)
             except Exception as e:
                 raise Exception("json adding failed", str(e))
 

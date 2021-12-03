@@ -83,7 +83,7 @@ def getPackage(id):
         else:
             return {'code': -1, 'message': "An error occurred while retrieving package, package does not exist", "packageList": packageList}, 500
     except Exception as e:
-        return {'code': -1, 'message': "An exception occurred while retrieving package", 'exception': str(e)}, 500
+        return {'code': -1, 'message': "An exception occurred while retrieving package", 'exception': str(e), 'args': e.args}, 500
 
 @app.route("/package/<id>", methods=['PUT'])
 def putPackage(id):
@@ -208,7 +208,7 @@ def delAllPackageVers(name):
         
         return {}, 400
     except Exception as e:
-        return {"exception": str(e)}, 400
+        return {"exception": str(e), 'args': e.args}, 400
 
 @app.route("/package", methods=['POST'])
 def createPackage():

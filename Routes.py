@@ -29,7 +29,7 @@ def getPackage(id):
     # Gets the package from google cloud storage and returns the info about it in metadata
     # Returns the actual compressed file in the content field as an encrypted base 64 string
     try:
-        if (id in packageList):
+        if (checkIfFileExists(id)):
             storageClient = storage.Client()
             bucketName = "ece-461-project-2-registry"
             bucket = storageClient.bucket(bucketName)
@@ -75,7 +75,7 @@ def putPackage(id):
     # Updates a currently existing package with the data from the request
     try:
         res = request.get_json(force=True)
-        if (id in packageList):
+        if (checkIfFileExists(id)):
             if (res["metadata"]["Name"] != packageList[id]["Name"] or res["metadata"]["Version"] != packageList[id]["Version"] or res["metadata"]["ID"] != packageList[id]["ID"]):
                 return {"Warning": "metadata of package did not match", "packageList": packageList}, 400
             delPackage(id) # delete old package without removing package from history dictionaries
@@ -117,7 +117,7 @@ def delPackage(id):
 @app.route("/package/<id>", methods=['DELETE'])
 def delPackageVers(id):
     try:
-        if (id in packageList):
+        if (checkIfFileExists(id)):
             packageList.pop(id)
             actionHistory.pop(id)
             delPackage(id)
@@ -130,7 +130,7 @@ def delPackageVers(id):
 @app.route("/package/<id>/rate", methods=["GET"])
 def ratePackage(id):
     try:
-        if (id in packageList):
+        if (checkIfFileExists(id)):
             downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
 
             if not os.path.exists(downloadPath):
@@ -207,8 +207,10 @@ def createPackage():
 
         if not os.path.exists(newPath):
             os.makedirs(newPath)
-        if id in packageList:
+
+        if checkIfFileExists(id):
             return {"package": "exists", "packageList": packageList}, 403
+
         newFile = str(os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip"))
         
         if "Content" in data["data"]: # Creation
@@ -311,8 +313,12 @@ def listPackages():
 @app.route("/reset", methods=['DELETE'])
 def reset():
     try:
-        for x in list(packageList):
-            delPackageVers(x)
+        storageClient = storage.Client()
+        bucketName = "ece-461-project-2-registry"
+        bucket = storageClient.bucket(bucketName)
+        blobs = bucket.list_blobs()
+        for blob in blobs:
+            blob.delete()
         
         packageList.clear()
         actionHistory.clear()

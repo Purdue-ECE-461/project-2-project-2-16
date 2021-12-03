@@ -324,7 +324,7 @@ def reset():
         actionHistory.clear()
         appService.reset()
 
-        return 200
+        return {}, 200
     except Exception as e:
         return {"Exception": str(e)}, 401
 

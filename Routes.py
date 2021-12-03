@@ -24,7 +24,7 @@ def checkIfFileExists(id):
 
     return fileToCheck.exists()
 
-@app.route("/test")
+@app.route("/")
 def hello_world():
     return 'Hello World!'
 
@@ -128,7 +128,7 @@ def delPackageVers(id):
             return {}, 200
         return {}, 400
     except Exception as e:
-        return {"exception": str(e)}, 400
+        return {"exception": str(e)}, 500
         
 
 @app.route("/package/<id>/rate", methods=["GET"])

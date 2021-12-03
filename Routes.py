@@ -248,7 +248,7 @@ def createPackage():
                 histEntryJson = json.dumps(histEntry)
 
                 with open(newHistFile, 'w') as fptr:
-                    json.dump(histEntryJson, fptr)
+                    fptr.write(histEntryJson)
             except Exception as e:
                 raise Exception("json adding failed", str(e))
 

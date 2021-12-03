@@ -212,14 +212,15 @@ def delAllPackageVers(name):
 
 @app.route("/package", methods=['POST'])
 def createPackage():
+    packageList = createPackageListDict()
     try:
-        packageList = createPackageListDict()
         data = request.get_json(force=True)
         encString = data["data"]["Content"]
         zipDecoded = base64.b64decode(encString)
 
         newDir = "new_zips"
         newPath = str(os.path.join(os.getcwd(), newDir))
+        histPath = str(os.path.join(os.getcwd(), "hist"))
 
         id = data["metadata"]["Name"] + data["metadata"]["Version"]
 
@@ -230,6 +231,7 @@ def createPackage():
             return {"package": "exists", "packageList": packageList}, 403
 
         newFile = str(os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip"))
+        newHistFile = str(os.path.join(histPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".txt"))
         
         if "Content" in data["data"]: # Creation
             with open(newFile, 'wb') as fptr:
@@ -237,15 +239,19 @@ def createPackage():
             
             files = []
             files.append(newFile)
+
+            histEntry = [{"User": {"name": "Default User", "isAdmin": True}, "Date": datetime.now(), "PackageMetadata": packageList[id], "Action": "CREATE"}]
+            histEntryJson = json.dumps(histEntry)
+
+            with open(newHistFile, 'w') as fptr:
+                json.dump(histEntryJson, fptr)
+
+            files.append(newHistFile)
+
             appService.upload(files)
-            
-            packageList[id] = {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}
-            actionHistory[id] = []
-            actionHistory[id].append((datetime.now(), "CREATE"))
 
         else: # Ingestion
             if (appService.ingest(newFile)):
-                packageList[id] = {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}
                 actionHistory[id] = []
                 actionHistory[id].append((datetime.now(), "CREATE"))
             else:

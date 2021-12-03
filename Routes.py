@@ -20,7 +20,7 @@ def checkIfFileExists(id):
     storageClient = storage.Client()
     bucketName = "ece-461-project-2-registry"
     bucket = storageClient.bucket(bucketName)
-    fileToCheck = bucket.blob(id)
+    fileToCheck = bucket.blob(id + ".zip")
 
     return fileToCheck.exists()
 

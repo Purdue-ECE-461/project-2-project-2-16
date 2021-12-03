@@ -215,7 +215,7 @@ def createPackage():
             os.makedirs(newPath)
         
         if id in packageList:
-            return {}, 403
+            return {"package": "exists", "packageList": packageList}, 403
 
         newFile = str(os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip"))
         

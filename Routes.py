@@ -123,10 +123,10 @@ def delPackage(id):
 def delPackageVers(id):
     try:
         if (id in packageList):
-            delPackage(id)
             packageList.pop(id)
             actionHistory.pop(id)
-            return {}, 200
+            delPackage(id)
+            return {"Trace": "popped key " + id + " from packageList", "packageList": packageList}, 200
         return {}, 400
     except Exception as e:
         return {"exception": str(e)}, 500

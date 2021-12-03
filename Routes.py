@@ -82,7 +82,7 @@ def putPackage(id):
         if (id in packageList):
             if (res["metadata"]["Name"] != packageList[id]["Name"] or res["metadata"]["Version"] != packageList[id]["Version"] or res["metadata"]["ID"] != packageList[id]["ID"]):
                 return {}, 400
-            delPackageVers(id) # delete old package
+            delPackage(id) # delete old package without removing package from history dictionaries
 
             newDir = "new_zips"
             newPath = str(os.path.join(os.getcwd(), newDir))
@@ -102,22 +102,29 @@ def putPackage(id):
             files.append(newFile)
             appService.upload(files)
             actionHistory[id].append((datetime.now(), "UPDATE"))
+            os.remove(newFile)
             
             return {}, 200
 
         return {}, 400
     except Exception as e:
-        return {"exception": str(e)}, 400
+        return {"exception": str(e), "args": e.args}, 400
+
+def delPackage(id):
+    storageClient = storage.Client()
+    bucketName = "ece-461-project-2-registry"
+    bucket = storageClient.bucket(bucketName)
+    blob = bucket.blob(id + ".zip")
+    blob.delete()
+    pass
 
 @app.route("/package/<id>", methods=['DELETE'])
 def delPackageVers(id):
     try:
-        storageClient = storage.Client()
-        bucketName = "ece-461-project-2-registry"
-        bucket = storageClient.bucket(bucketName)
         if (id in packageList):
-            blob = bucket.blob(id + ".zip")
-            blob.delete()
+            delPackage(id)
+            packageList.pop(id)
+            actionHistory.pop(id)
             return {}, 200
         return {}, 400
     except Exception as e:

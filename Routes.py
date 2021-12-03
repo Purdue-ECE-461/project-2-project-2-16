@@ -6,7 +6,6 @@ import base64
 
 app = Flask(__name__)
 
-packageList = dict() # maps String id to {name, version, id}
 actionHistory = dict() # maps String id to [(date, action)],...
 
 appService = ApplicationService()
@@ -14,6 +13,21 @@ appService = ApplicationService()
 # IDs are always unique strings, and different versions of the same package will have unique IDs
 # Names can be duplicates, IDs cannot
 # If a method isn't specified, it is a GET method
+def createPackageListDict():
+    storageClient = storage.Client()
+    bucketName = "ece-461-project-2-registry"
+    bucket = storageClient.bucket(bucketName)
+    blobs = bucket.list_blobs()
+    packageList = dict()
+    for blob in blobs:
+        name = str(blob.name)
+        id = name[:-4]
+        version = id[-5:]
+        pkgName = id[:-5]
+        packageList[id] = {"Name": pkgName, "Version": version, "ID": id}
+
+    return packageList
+
     
 def checkIfFileExists(id):
     #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
@@ -29,6 +43,7 @@ def getPackage(id):
     # Gets the package from google cloud storage and returns the info about it in metadata
     # Returns the actual compressed file in the content field as an encrypted base 64 string
     try:
+        packageList = createPackageListDict()
         if (checkIfFileExists(id)):
             storageClient = storage.Client()
             bucketName = "ece-461-project-2-registry"
@@ -75,6 +90,7 @@ def putPackage(id):
     # Updates a currently existing package with the data from the request
     try:
         res = request.get_json(force=True)
+        packageList = createPackageListDict()
         if (checkIfFileExists(id)):
             if (res["metadata"]["Name"] != packageList[id]["Name"] or res["metadata"]["Version"] != packageList[id]["Version"] or res["metadata"]["ID"] != packageList[id]["ID"]):
                 return {"Warning": "metadata of package did not match", "packageList": packageList}, 400
@@ -117,8 +133,8 @@ def delPackage(id):
 @app.route("/package/<id>", methods=['DELETE'])
 def delPackageVers(id):
     try:
+        packageList = createPackageListDict()
         if (checkIfFileExists(id)):
-            packageList.pop(id)
             actionHistory.pop(id)
             delPackage(id)
             return {"Trace": "popped key " + id + " from packageList", "packageList": packageList}, 200
@@ -158,6 +174,7 @@ def ratePackage(id):
 def getPackageByName(name):
     try:
         jsonOut = []
+        packageList = createPackageListDict()
         for id, info in packageList.items():
             if (info["Name"] == name):
                 for y in actionHistory[id]:
@@ -178,10 +195,10 @@ def delAllPackageVers(name):
         bucket = storageClient.bucket(bucketName)
         deleted = False
 
+        packageList = createPackageListDict()
         for id, info in packageList.items():
             if (info["Name"] == name):
                 actionHistory.pop(id)
-                packageList.pop(id)
                 blob = bucket.blob(id + ".zip")
                 blob.delete()
                 deleted = True
@@ -196,6 +213,7 @@ def delAllPackageVers(name):
 @app.route("/package", methods=['POST'])
 def createPackage():
     try:
+        packageList = createPackageListDict()
         data = request.get_json(force=True)
         encString = data["data"]["Content"]
         zipDecoded = base64.b64decode(encString)
@@ -294,6 +312,7 @@ def versionCheck(versionTestAgainst, versionToTest):
 
 @app.route("/packages", methods=['POST'])
 def listPackages():
+    packageList = createPackageListDict()
     output = []
     count = 0
     try:
@@ -320,7 +339,6 @@ def reset():
         for blob in blobs:
             blob.delete()
         
-        packageList.clear()
         actionHistory.clear()
         appService.reset()
 

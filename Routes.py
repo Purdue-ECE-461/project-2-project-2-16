@@ -33,12 +33,13 @@ def getPackage(id):
     # Gets the package from google cloud storage and returns the info about it in metadata
     # Returns the actual compressed file in the content field as an encrypted base 64 string
     try:
-        storageClient = storage.Client()
-        bucketName = "ece-461-project-2-registry"
-        bucket = storageClient.bucket(bucketName)
-        fileToCheck = bucket.blob(id + ".zip")
-
         if (id in packageList):
+            storageClient = storage.Client()
+            bucketName = "ece-461-project-2-registry"
+            bucket = storageClient.bucket(bucketName)
+            fileToCheck = bucket.blob(id + ".zip")
+
+            
             downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
             downloadFile = str(os.path.join(downloadPath, id + ".zip"))
 
@@ -81,7 +82,7 @@ def putPackage(id):
 
         if (id in packageList):
             if (res["metadata"]["Name"] != packageList[id]["Name"] or res["metadata"]["Version"] != packageList[id]["Version"] or res["metadata"]["ID"] != packageList[id]["ID"]):
-                return {}, 400
+                return {"Warning": "metadata of package did not match", "packageList": packageList}, 400
             delPackage(id) # delete old package without removing package from history dictionaries
 
             newDir = "new_zips"
@@ -134,17 +135,15 @@ def delPackageVers(id):
 @app.route("/package/<id>/rate", methods=["GET"])
 def ratePackage(id):
     try:
-        storageClient = storage.Client()
-        bucketName = "ece-461-project-2-registry"
-        bucket = storageClient.bucket(bucketName)
-        fileToCheck = bucket.blob(id + ".zip")
-
-        if (fileToCheck.exists()):
+        if (id in packageList):
             downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
 
             if not os.path.exists(downloadPath):
                 os.makedirs(downloadPath)
 
+            storageClient = storage.Client()
+            bucketName = "ece-461-project-2-registry"
+            bucket = storageClient.bucket(bucketName)
             fileToDownload = bucket.blob(id + ".zip")
             fileDownloadPath = str(os.path.join(downloadPath, id + ".zip"))
             fileToDownload.download_to_filename(fileDownloadPath)
@@ -158,7 +157,7 @@ def ratePackage(id):
             return {"RampUp": res[0][1], "Correctness": res[0][2], "BusFactor": res[0][3], "ResponsiveMaintainer": res[0][4], "LicenseScore": res[0][5], "GoodPinningPractice": "Test"}, 200
         return {}, 400
     except Exception as e:
-        return {"exception": str(e)}, 500
+        return {"exception": str(e), "args": e.args}, 500
 
 @app.route("/package/byName/<name>", methods=['GET'])
 def getPackageByName(name):
@@ -219,12 +218,11 @@ def createPackage():
             return {}, 403
 
         newFile = str(os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip"))
-
-        with open(newFile, 'wb') as fptr:
-            fptr.write(zipDecoded)
-
         
         if "Content" in data["data"]: # Creation
+            with open(newFile, 'wb') as fptr:
+                fptr.write(zipDecoded)
+            
             files = []
             files.append(newFile)
             appService.upload(files)

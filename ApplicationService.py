@@ -5,6 +5,7 @@ import zipfile
 import json
 from analysis import *
 from pathlib import Path
+from analysis import *
 
 class ApplicationService:
     def __init__(self):

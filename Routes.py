@@ -14,19 +14,22 @@ appService = ApplicationService()
 # Names can be duplicates, IDs cannot
 # If a method isn't specified, it is a GET method
 def createPackageListDict():
-    storageClient = storage.Client()
-    bucketName = "ece-461-project-2-registry"
-    bucket = storageClient.bucket(bucketName)
-    blobs = bucket.list_blobs()
-    packageList = dict()
-    for blob in blobs:
-        name = str(blob.name)
-        id = name[:-4]
-        version = id[-5:]
-        pkgName = id[:-5]
-        packageList[id] = {"Name": pkgName, "Version": version, "ID": id}
+    try:
+        storageClient = storage.Client()
+        bucketName = "ece-461-project-2-registry"
+        bucket = storageClient.bucket(bucketName)
+        blobs = bucket.list_blobs()
+        packageList = dict()
+        for blob in blobs:
+            name = str(blob.name)
+            id = name[:-4]
+            version = id[-5:]
+            pkgName = id[:-5]
+            packageList[id] = {"Name": pkgName, "Version": version, "ID": id}
 
-    return packageList
+        return packageList
+    except Exception as e:
+        raise Exception("error in create package list dict")
 
     
 def checkIfFileExists(id):
@@ -76,8 +79,6 @@ def getPackage(id):
                 repoUrl = jsonData["homepage"]
             except:
                 repoUrl = "No URL Found."
-
-            actionHistory[id].append((datetime.now(), "GET"))
         
             return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr.decode('ascii'), "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
         else:
@@ -140,7 +141,7 @@ def delPackageVers(id):
             return {"Trace": "popped key " + id + " from packageList", "packageList": packageList}, 200
         return {}, 400
     except Exception as e:
-        return {"exception": str(e)}, 500
+        return {"exception": str(e), "args": e.args}, 500
         
 
 @app.route("/package/<id>/rate", methods=["GET"])

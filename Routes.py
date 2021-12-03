@@ -33,13 +33,15 @@ def createPackageListDict():
 
     
 def checkIfFileExists(id):
-    #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
-    storageClient = storage.Client()
-    bucketName = "ece-461-project-2-registry"
-    bucket = storageClient.bucket(bucketName)
-    fileToCheck = bucket.blob(id + ".zip")
+    try:
+        storageClient = storage.Client()
+        bucketName = "ece-461-project-2-registry"
+        bucket = storageClient.bucket(bucketName)
+        fileToCheck = bucket.blob(id + ".zip")
 
-    return fileToCheck.exists()
+        return fileToCheck.exists()
+    except:
+        raise Exception("File check failed")
 
 @app.route("/package/<id>")
 def getPackage(id):
@@ -241,15 +243,21 @@ def createPackage():
             files = []
             files.append(newFile)
 
-            histEntry = [{"User": {"name": "Default User", "isAdmin": True}, "Date": datetime.now(), "PackageMetadata": packageList[id], "Action": "CREATE"}]
-            histEntryJson = json.dumps(histEntry)
+            try:
+                histEntry = [{"User": {"name": "Default User", "isAdmin": True}, "Date": datetime.now(), "PackageMetadata": packageList[id], "Action": "CREATE"}]
+                histEntryJson = json.dumps(histEntry)
 
-            with open(newHistFile, 'w') as fptr:
-                json.dump(histEntryJson, fptr)
+                with open(newHistFile, 'w') as fptr:
+                    json.dump(histEntryJson, fptr)
+            except Exception as e:
+                raise Exception("json adding failed", str(e))
 
             files.append(newHistFile)
 
-            appService.upload(files)
+            try:
+                appService.upload(files)
+            except:
+                raise Exception("Upload failed")
 
         else: # Ingestion
             if (appService.ingest(newFile)):

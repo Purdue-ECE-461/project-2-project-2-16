@@ -256,7 +256,7 @@ def createPackage():
             except Exception as e:
                 raise Exception("json adding failed", str(e))
 
-            files.append(newHistFile)
+            #files.append(newHistFile)
 
             try:
                 appService.upload(files)

@@ -3,6 +3,7 @@ from ApplicationService import *
 from google.cloud import storage
 import zipfile
 import base64
+import threading
 
 app = Flask(__name__)
 
@@ -10,6 +11,8 @@ packageList = dict() # maps String id to {name, version, id}
 actionHistory = dict() # maps String id to [(date, action)],...
 
 appService = ApplicationService()
+
+lock = threading.Lock()
 
 # IDs are always unique strings, and different versions of the same package will have unique IDs
 # Names can be duplicates, IDs cannot
@@ -33,6 +36,7 @@ def getPackage(id):
     # Gets the package from google cloud storage and returns the info about it in metadata
     # Returns the actual compressed file in the content field as an encrypted base 64 string
     try:
+        lock.acquire()
         if (id in packageList):
             storageClient = storage.Client()
             bucketName = "ece-461-project-2-registry"
@@ -67,9 +71,11 @@ def getPackage(id):
                 repoUrl = "No URL Found."
 
             actionHistory[id].append((datetime.now(), "GET"))
+            lock.release()
         
             return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr.decode('ascii'), "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
         else:
+            lock.release()
             return {'code': -1, 'message': "An error occurred while retrieving package, package does not exist", "packageList": packageList}, 500
     except Exception as e:
         return {'code': -1, 'message': "An exception occurred while retrieving package", 'exception': str(e)}, 500
@@ -79,7 +85,7 @@ def putPackage(id):
     # Updates a currently existing package with the data from the request
     try:
         res = request.get_json(force=True)
-
+        lock.acquire()
         if (id in packageList):
             if (res["metadata"]["Name"] != packageList[id]["Name"] or res["metadata"]["Version"] != packageList[id]["Version"] or res["metadata"]["ID"] != packageList[id]["ID"]):
                 return {"Warning": "metadata of package did not match", "packageList": packageList}, 400
@@ -104,9 +110,11 @@ def putPackage(id):
             appService.upload(files)
             actionHistory[id].append((datetime.now(), "UPDATE"))
             os.remove(newFile)
+            lock.release()
             
             return {}, 200
 
+        lock.release()
         return {}, 400
     except Exception as e:
         return {"exception": str(e), "args": e.args}, 400
@@ -122,11 +130,14 @@ def delPackage(id):
 @app.route("/package/<id>", methods=['DELETE'])
 def delPackageVers(id):
     try:
+        lock.acquire()
         if (id in packageList):
             packageList.pop(id)
             actionHistory.pop(id)
+            lock.release()
             delPackage(id)
             return {"Trace": "popped key " + id + " from packageList", "packageList": packageList}, 200
+        lock.release()
         return {}, 400
     except Exception as e:
         return {"exception": str(e)}, 500
@@ -135,7 +146,9 @@ def delPackageVers(id):
 @app.route("/package/<id>/rate", methods=["GET"])
 def ratePackage(id):
     try:
+        lock.acquire()
         if (id in packageList):
+            lock.release()
             downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
 
             if not os.path.exists(downloadPath):
@@ -152,9 +165,12 @@ def ratePackage(id):
             files.append(fileDownloadPath)
             res = appService.rate(files)
 
+            lock.acquire()
             actionHistory[id].append((datetime.now(), "RATE"))
+            lock.release()
 
             return {"RampUp": res[0][1], "Correctness": res[0][2], "BusFactor": res[0][3], "ResponsiveMaintainer": res[0][4], "LicenseScore": res[0][5], "GoodPinningPractice": "Test"}, 200
+        lock.release()
         return {}, 400
     except Exception as e:
         return {"exception": str(e), "args": e.args}, 500
@@ -163,11 +179,12 @@ def ratePackage(id):
 def getPackageByName(name):
     try:
         jsonOut = []
+        lock.acquire()
         for id, info in packageList.items():
             if (info["Name"] == name):
                 for y in actionHistory[id]:
                     jsonOut.append({"Date": y[0], "PackageMetadata": info, "Action": y[1]})
-        
+        lock.release()
         if not jsonOut:
             return {}, 400
         
@@ -213,10 +230,11 @@ def createPackage():
 
         if not os.path.exists(newPath):
             os.makedirs(newPath)
-        
+        lock.acquire()
         if id in packageList:
+            lock.release()
             return {"package": "exists", "packageList": packageList}, 403
-
+        lock.release()
         newFile = str(os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip"))
         
         if "Content" in data["data"]: # Creation
@@ -227,15 +245,19 @@ def createPackage():
             files.append(newFile)
             appService.upload(files)
             
+            lock.acquire()
             packageList[id] = {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}
             actionHistory[id] = []
             actionHistory[id].append((datetime.now(), "CREATE"))
+            lock.release()
 
         else: # Ingestion
             if (appService.ingest(newFile)):
+                lock.acquire()
                 packageList[id] = {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}
                 actionHistory[id] = []
                 actionHistory[id].append((datetime.now(), "CREATE"))
+                lock.release()
             else:
                 return 403
 

@@ -1,3 +1,4 @@
+from re import S
 from flask import Flask, request
 from ApplicationService import *
 from google.cloud import storage
@@ -234,7 +235,7 @@ def createPackage():
             return {"package": "exists", "packageList": packageList}, 403
 
         newFile = str(os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip"))
-        newHistFile = str(os.path.join(histPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".txt"))
+        newHistFile = str(os.path.join(histPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".json"))
         
         if "Content" in data["data"]: # Creation
             with open(newFile, 'wb') as fptr:
@@ -245,10 +246,13 @@ def createPackage():
 
             try:
                 histEntry = [{"User": {"name": "Default User", "isAdmin": True}, "Date": datetime.now(), "PackageMetadata": packageList[id], "Action": "CREATE"}]
-                histEntryJson = json.dumps(histEntry)
+                histEntryJsonList = []
+                for x in histEntry:
+                    histEntryJsonList.append(json.dumps(x))
+                parsedData = [json.loads(s) for s in histEntryJsonList]
 
                 with open(newHistFile, 'w') as fptr:
-                    fptr.write(histEntryJson)
+                    json.dump(parsedData, fptr, indent=4)
             except Exception as e:
                 raise Exception("json adding failed", str(e))
 

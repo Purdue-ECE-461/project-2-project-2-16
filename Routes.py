@@ -247,8 +247,9 @@ def createPackage():
             files = []
             files.append(newFile)
 
+            histEntry = []
             try:
-                histEntry = [{"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": packageList[id], "Action": "CREATE"}]
+                histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": datetime.now(), "PackageMetadata": packageList[id], "Action": "CREATE"})
             except Exception as e:
                 raise Exception("dict create fail", str(e))
             try:

@@ -255,7 +255,7 @@ def createPackage():
 
             
 
-            #files.append(newHistFile)
+            files.append(newHistFile)
 
             try:
                 appService.upload(files)

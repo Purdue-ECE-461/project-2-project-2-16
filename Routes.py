@@ -238,17 +238,23 @@ def createPackage():
         newHistFile = str(os.path.join(histPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".txt"))
         
         if "Content" in data["data"]: # Creation
-            with open(newFile, 'wb') as fptr:
-                fptr.write(zipDecoded)
+            try:
+                with open(newFile, 'wb') as fptr:
+                    fptr.write(zipDecoded)
+            except Exception as e:
+                raise Exception("decode zip fail", str(e))
             
             files = []
             files.append(newFile)
 
-            histEntry = [{"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": packageList[id], "Action": "CREATE"}]
+            try:
+                histEntry = [{"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": packageList[id], "Action": "CREATE"}]
+            except Exception as e:
+                raise Exception("dict create fail", str(e))
             try:
                 fptr = open(newHistFile, 'w+')
-            except:
-                raise Exception("opening failed")
+            except Exception as e:
+                raise Exception("opening fail", str(e))
             try:
                 jsonString = json.dumps(histEntry)
             except:
@@ -275,7 +281,7 @@ def createPackage():
         return {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id, "packageList": packageList}, 201
         
     except Exception as e:
-        return {"Exception": str(e)}, 400
+        return {"Exception": str(e), "args": e.args}, 400
 
 def splitVersionString(version):
     split = version.split('.')

@@ -249,7 +249,8 @@ def createPackage():
 
             histEntry = []
             try:
-                histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": datetime.now(), "PackageMetadata": packageList[id], "Action": "CREATE"})
+                #histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": datetime.now(), "PackageMetadata": packageList[id], "Action": "CREATE"})
+                histEntry.append({"test": "dict"})
             except Exception as e:
                 raise Exception("dict create fail", str(e))
             try:
@@ -341,8 +342,7 @@ def versionCheck(versionTestAgainst, versionToTest):
 @app.route("/packages", methods=['POST'])
 def listPackages():
     packageList = createPackageListDict()
-    output = []
-    count = 0
+    packages = packageList.items()
     try:
         offset = request.args.get('offset')
     except:
@@ -352,16 +352,6 @@ def listPackages():
     dataList = json.loads(data)
     #for x in dataList:
         
-    totalPackages = len(packageList)
-    totalPages = totalPackages / 5
-    if offset >= totalPages:
-        print("Test")
-
-    else:
-        print("test")
-        #print the correct page of results
-    page = 5 * offset
-    # sorted dict? return by name?
     return {'offset': {"offsetAct": offset}}
 
 @app.route("/reset", methods=['DELETE'])

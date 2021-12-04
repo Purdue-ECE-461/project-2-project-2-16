@@ -246,14 +246,12 @@ def createPackage():
 
             histEntry = [{"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": packageList[id], "Action": "CREATE"}]
             
-            with open(newHistFile, 'w') as fptr:
+            with open(newHistFile, 'w+') as fptr:
                 try:
                     jsonString = json.dumps(histEntry)
                 except Exception as e:
                     raise Exception("json adding failed", str(e))
                 fptr.write(jsonString)
-
-            
 
             files.append(newHistFile)
 
@@ -343,6 +341,14 @@ def listPackages():
     #for x in dataList:
         
     totalPackages = len(packageList)
+    totalPages = totalPackages / 5
+    if offset >= totalPages:
+        #print the last page of results
+        print("Test")
+
+    else:
+        print("test")
+        #print the correct page of results
     page = 5 * offset
     # sorted dict? return by name?
     return {'offset': {"offsetAct": offset}}

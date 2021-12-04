@@ -245,13 +245,18 @@ def createPackage():
             files.append(newFile)
 
             histEntry = [{"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": packageList[id], "Action": "CREATE"}]
-            
-            with open(newHistFile, 'w+') as fptr:
-                try:
-                    jsonString = json.dumps(histEntry)
-                except Exception as e:
-                    raise Exception("json adding failed", str(e))
+            try:
+                fptr = open(newHistFile, 'w+')
+            except:
+                raise Exception("opening failed")
+            try:
+                jsonString = json.dumps(histEntry)
+            except:
+                raise Exception("Json string fail")
+            try:
                 fptr.write(jsonString)
+            except Exception as e:
+                raise Exception("json write failed", str(e))
 
             files.append(newHistFile)
 
@@ -343,7 +348,6 @@ def listPackages():
     totalPackages = len(packageList)
     totalPages = totalPackages / 5
     if offset >= totalPages:
-        #print the last page of results
         print("Test")
 
     else:

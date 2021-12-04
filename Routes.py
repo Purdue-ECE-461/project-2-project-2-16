@@ -234,9 +234,9 @@ def createPackage():
         if checkIfFileExists(id):
             return {"package": "exists", "packageList": packageList}, 403
 
-        newFile = str(os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip"))
-        newHistFile = str(os.path.join(histPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".txt"))
-        
+        newFile = os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip")
+        newHistFile = os.path.join(histPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".txt")
+    
         if "Content" in data["data"]: # Creation
             try:
                 with open(newFile, 'wb') as fptr:
@@ -248,10 +248,7 @@ def createPackage():
             files.append(newFile)
 
             histEntry = []
-            try:
-                histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": datetime.now(), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "CREATE"})
-            except Exception as e:
-                raise Exception("dict create fail", str(e))
+            histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": datetime.now(), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "CREATE"})
             try:
                 fptr = open(newHistFile, 'w+')
             except Exception as e:
@@ -347,11 +344,26 @@ def listPackages():
     except:
         offset = 1
 
+    output = []
+
     data = request.get_json(force=True)
     dataList = json.loads(data)
-    #for x in dataList:
-        
-    return {'offset': {"offsetAct": offset}}
+    for dictReqs in dataList: # loop through all reqs
+        for package in packages:
+            if package["Name"] == dictReqs["Name"]:
+                if versionCheck(dictReqs["Version"], package["Version"]):
+                    output.append(package)
+
+    totalOutputPages = len(output) / 5
+    if offset > totalOutputPages:
+        offset = totalOutputPages
+
+    startPackage = (totalOutputPages - 1) * 5
+    outputPage = []
+    for x in range(startPackage, len(output)):
+        outputPage.append(output[x])
+
+    return outputPage, 200
 
 @app.route("/reset", methods=['DELETE'])
 def reset():

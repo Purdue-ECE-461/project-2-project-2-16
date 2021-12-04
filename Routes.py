@@ -224,12 +224,17 @@ def createPackage():
 
         newDir = "new_zips"
         newPath = os.path.join(os.getcwd(), newDir)
-        histPath = os.path.join(os.getcwd(), "hist")
+
+        histDir = "hist"
+        histPath = os.path.join(os.getcwd(), histDir)
 
         id = data["metadata"]["Name"] + data["metadata"]["Version"]
 
         if not os.path.exists(newPath):
             os.makedirs(newPath)
+
+        if not os.path.exists(histPath):
+            os.makedirs(histPath)
 
         if checkIfFileExists(id):
             return {"package": "exists", "packageList": packageList}, 403
@@ -249,21 +254,16 @@ def createPackage():
 
             histEntry = []
             histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": datetime.now(), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "CREATE"})
-            try:
-                if not os.path.exists(newHistFile):
-                    fptr = open(str(newHistFile), 'x')
-                else:
-                    fptr = open(str(newHistFile), 'w')
-            except Exception as e:
-                raise Exception("opening fail", str(e))
-            try:
-                jsonString = json.dumps(histEntry)
-            except:
-                raise Exception("Json string fail")
-            try:
-                fptr.write(jsonString)
-            except Exception as e:
-                raise Exception("json write failed", str(e))
+            
+            with open(newFile, "w") as fptr:
+                try:
+                    jsonString = json.dumps(histEntry)
+                except:
+                    raise Exception("Json string fail")
+                try:
+                    fptr.write(jsonString)
+                except Exception as e:
+                    raise Exception("json write failed", str(e))
 
             files.append(str(newHistFile))
 

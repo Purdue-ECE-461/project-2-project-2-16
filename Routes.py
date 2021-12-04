@@ -245,14 +245,11 @@ def createPackage():
             files.append(newFile)
 
             try:
-                histEntry = [{"User": {"name": "Default User", "isAdmin": True}, "Date": datetime.now(), "PackageMetadata": packageList[id], "Action": "CREATE"}]
-               # histEntryJsonList = []
-                #for x in histEntry:
-                #    histEntryJsonList.append(json.dumps(x))
-                #parsedData = [json.loads(s) for s in histEntryJsonList]
+                histEntry = [{"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": packageList[id], "Action": "CREATE"}]
+                with open(newHistFile, 'w') as fptr:
+                    jsonString = json.dumps(histEntry)
+                    fptr.write(jsonString)
 
-                #with open(newHistFile, 'w') as fptr:
-                #    json.dump(histEntry, fptr)
             except Exception as e:
                 raise Exception("json adding failed", str(e))
 

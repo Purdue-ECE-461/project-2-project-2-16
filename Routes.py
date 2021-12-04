@@ -95,7 +95,7 @@ def putPackage(id):
     try:
         res = request.get_json(force=True)
         packageList = createPackageListDict()
-        if (checkIfFileExists(id)):
+        if checkIfFileExists(id):
             if (res["metadata"]["Name"] != packageList[id]["Name"] or res["metadata"]["Version"] != packageList[id]["Version"] or res["metadata"]["ID"] != packageList[id]["ID"]):
                 return {"Warning": "metadata of package did not match", "packageList": packageList}, 400
             delPackage(id) # delete old package without removing package from history dictionaries
@@ -240,14 +240,11 @@ def createPackage():
             return {"package": "exists", "packageList": packageList}, 403
 
         newFile = os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip")
-        newHistFile = os.path.join(histPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".txt")
+        newHistFile = os.path.join(histPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".json")
     
         if "Content" in data["data"]: # Creation
-            try:
-                with open(newFile, 'wb') as fptr:
-                    fptr.write(zipDecoded)
-            except Exception as e:
-                raise Exception("decode zip fail", str(e))
+            with open(newFile, 'wb') as fptr:
+                fptr.write(zipDecoded)
             
             files = []
             files.append(str(newFile))
@@ -257,13 +254,14 @@ def createPackage():
             
             with open(newFile, "w") as fptr:
                 try:
-                    jsonString = json.dumps(histEntry)
+                    json.dump(histEntry, fptr)
+                    #jsonString = json.dumps(histEntry)
                 except:
                     raise Exception("Json string fail")
-                try:
-                    fptr.write(jsonString)
-                except Exception as e:
-                    raise Exception("json write failed", str(e))
+                #try:
+                 #   fptr.write(jsonString)
+                #except Exception as e:
+                #    raise Exception("json write failed", str(e))
 
             files.append(str(newHistFile))
 

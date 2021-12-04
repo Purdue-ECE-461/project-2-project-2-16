@@ -251,9 +251,9 @@ def createPackage():
             histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": datetime.now(), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "CREATE"})
             try:
                 if not os.path.exists(newHistFile):
-                    fptr = open(newHistFile, 'x')
+                    fptr = open(str(newHistFile), 'x')
                 else:
-                    fptr = open(newHistFile, 'w')
+                    fptr = open(str(newHistFile), 'w')
             except Exception as e:
                 raise Exception("opening fail", str(e))
             try:
@@ -273,7 +273,7 @@ def createPackage():
                 raise Exception("Upload failed")
 
         else: # Ingestion
-            if (appService.ingest(newFile)):
+            if appService.ingest(str(newFile)):
                 actionHistory[id] = []
                 actionHistory[id].append((datetime.now(), "CREATE"))
             else:

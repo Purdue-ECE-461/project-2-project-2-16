@@ -57,26 +57,26 @@ def getPackage(id):
             fileToCheck = bucket.blob(id + ".zip")
 
             
-            downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
-            downloadFile = str(os.path.join(downloadPath, id + ".zip"))
+            downloadPath = os.path.join(os.getcwd(), "Downloads")
+            downloadFile = os.path.join(downloadPath, id + ".zip")
 
             if not os.path.exists(downloadPath):
                 os.makedirs(downloadPath)
                 
             fileToDownload = fileToCheck # name of storage object goes here
-            fileToDownload.download_to_filename(downloadFile) # path to local file
+            fileToDownload.download_to_filename(str(downloadFile)) # path to local file
 
             with open(downloadFile, "rb") as fptr:
                 data = fptr.read()
                 encodedStr = base64.b64encode(data)
 
-            unzipPath = str(os.path.join(downloadPath, id))
+            unzipPath = os.path.join(downloadPath, id)
 
             with zipfile.ZipFile(downloadFile, "r") as zipRef:
                 zipRef.extractall(unzipPath)
 
             try:
-                jsonFile = str(os.path.join(unzipPath, "package.json"))
+                jsonFile = os.path.join(unzipPath, "package.json")
                 fptr = open(jsonFile)
                 jsonData = json.load(fptr)
                 repoUrl = jsonData["homepage"]
@@ -101,12 +101,12 @@ def putPackage(id):
             delPackage(id) # delete old package without removing package from history dictionaries
 
             newDir = "new_zips"
-            newPath = str(os.path.join(os.getcwd(), newDir))
+            newPath = os.path.join(os.getcwd(), newDir)
 
             if not os.path.exists(newPath):
                 os.makedirs(newPath)
 
-            newFile = str(os.path.join(newPath, id + ".zip"))
+            newFile = os.path.join(newPath, id + ".zip")
 
             zipEncodedStr = res["data"]["Content"]
             zipDecoded = base64.b64decode(zipEncodedStr)
@@ -115,7 +115,7 @@ def putPackage(id):
                 fptr.write(zipDecoded)
    
             files = []
-            files.append(newFile)
+            files.append(str(newFile))
             appService.upload(files)
             actionHistory[id].append((datetime.now(), "UPDATE"))
             os.remove(newFile)
@@ -223,8 +223,8 @@ def createPackage():
         zipDecoded = base64.b64decode(encString)
 
         newDir = "new_zips"
-        newPath = str(os.path.join(os.getcwd(), newDir))
-        histPath = str(os.path.join(os.getcwd(), "hist"))
+        newPath = os.path.join(os.getcwd(), newDir)
+        histPath = os.path.join(os.getcwd(), "hist")
 
         id = data["metadata"]["Name"] + data["metadata"]["Version"]
 
@@ -245,12 +245,15 @@ def createPackage():
                 raise Exception("decode zip fail", str(e))
             
             files = []
-            files.append(newFile)
+            files.append(str(newFile))
 
             histEntry = []
             histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": datetime.now(), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "CREATE"})
             try:
-                fptr = open(newHistFile, 'w+')
+                if not os.path.exists(newHistFile):
+                    fptr = open(newHistFile, 'x')
+                else:
+                    fptr = open(newHistFile, 'w')
             except Exception as e:
                 raise Exception("opening fail", str(e))
             try:
@@ -262,7 +265,7 @@ def createPackage():
             except Exception as e:
                 raise Exception("json write failed", str(e))
 
-            files.append(newHistFile)
+            files.append(str(newHistFile))
 
             try:
                 appService.upload(files)

@@ -11,22 +11,25 @@ actionHistory = dict() # maps String id to [(date, action)],...
 
 appService = ApplicationService()
 
+bucketName = "ece-461-project-2-registry"
+
 # IDs are always unique strings, and different versions of the same package will have unique IDs
 # Names can be duplicates, IDs cannot
 # If a method isn't specified, it is a GET method
 def createPackageListDict():
     try:
         storageClient = storage.Client()
-        bucketName = "ece-461-project-2-registry"
         bucket = storageClient.bucket(bucketName)
         blobs = bucket.list_blobs()
         packageList = dict()
         for blob in blobs:
             name = str(blob.name)
+            fileType = name [-4:]
             id = name[:-4]
-            version = id[-5:]
-            pkgName = id[:-5]
-            packageList[id] = {"Name": pkgName, "Version": version, "ID": id}
+            version = id[-6:]
+            pkgName = id[:-6]
+            if fileType == ".zip":
+                packageList[id] = {"Name": pkgName, "Version": version, "ID": id}
 
         return packageList
     except Exception as e:
@@ -36,7 +39,6 @@ def createPackageListDict():
 def checkIfFileExists(id):
     try:
         storageClient = storage.Client()
-        bucketName = "ece-461-project-2-registry"
         bucket = storageClient.bucket(bucketName)
         fileToCheck = bucket.blob(id + ".zip")
 
@@ -52,7 +54,6 @@ def getPackage(id):
         packageList = createPackageListDict()
         if (checkIfFileExists(id)):
             storageClient = storage.Client()
-            bucketName = "ece-461-project-2-registry"
             bucket = storageClient.bucket(bucketName)
             fileToCheck = bucket.blob(id + ".zip")
 
@@ -128,7 +129,6 @@ def putPackage(id):
 
 def delPackage(id):
     storageClient = storage.Client()
-    bucketName = "ece-461-project-2-registry"
     bucket = storageClient.bucket(bucketName)
     blob = bucket.blob(id + ".zip")
     blob.delete()
@@ -157,7 +157,6 @@ def ratePackage(id):
                 os.makedirs(downloadPath)
 
             storageClient = storage.Client()
-            bucketName = "ece-461-project-2-registry"
             bucket = storageClient.bucket(bucketName)
             fileToDownload = bucket.blob(id + ".zip")
             fileDownloadPath = str(os.path.join(downloadPath, id + ".zip"))
@@ -195,7 +194,6 @@ def getPackageByName(name):
 def delAllPackageVers(name):
     try:
         storageClient = storage.Client()
-        bucketName = "ece-461-project-2-registry"
         bucket = storageClient.bucket(bucketName)
         deleted = False
 
@@ -345,6 +343,7 @@ def listPackages():
 
         data = request.get_json(force=True)
         dataList = json.loads(data)
+        # sort through and get all possible packages to print
         for dictReqs in dataList: # loop through all reqs
             for package in packages:
                 if package["Name"] == dictReqs["Name"]:
@@ -357,7 +356,7 @@ def listPackages():
 
         startPackage = (totalOutputPages - 1) * 5
         outputPage = []
-        for x in range(startPackage, len(output)):
+        for x in range(startPackage, len(output)): # paginate the output
             outputPage.append(output[x])
 
         return outputPage, 200
@@ -368,7 +367,6 @@ def listPackages():
 def reset():
     try:
         storageClient = storage.Client()
-        bucketName = "ece-461-project-2-registry"
         bucket = storageClient.bucket(bucketName)
         blobs = bucket.list_blobs()
         for blob in blobs:

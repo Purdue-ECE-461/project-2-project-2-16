@@ -238,7 +238,7 @@ def createPackage():
             return {"package": "exists", "packageList": packageList}, 403
 
         newFile = os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip")
-        newHistFile = os.path.join(histPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".json")
+        newHistFile = os.path.join(histPath, data["metadata"]["Name"] + data["metadata"]["Version"] + "history.json")
     
         if "Content" in data["data"]: # Creation
             with open(newFile, 'wb') as fptr:

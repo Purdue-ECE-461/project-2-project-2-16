@@ -252,7 +252,7 @@ def createPackage():
             histEntry = []
             histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "CREATE"})
             
-            with open(newFile, "w") as fptr:
+            with open(newHistFile, "w") as fptr:
                 try:
                     json.dump(histEntry, fptr, indent=4)
                 except:
@@ -333,33 +333,36 @@ def versionCheck(versionTestAgainst, versionToTest):
 
 @app.route("/packages", methods=['POST'])
 def listPackages():
-    packageList = createPackageListDict()
-    packages = packageList.items()
     try:
-        offset = request.args.get('offset')
-    except:
-        offset = 1
+        packageList = createPackageListDict()
+        packages = packageList.items()
+        try:
+            offset = request.args.get('offset')
+        except:
+            offset = 1
 
-    output = []
+        output = []
 
-    data = request.get_json(force=True)
-    dataList = json.loads(data)
-    for dictReqs in dataList: # loop through all reqs
-        for package in packages:
-            if package["Name"] == dictReqs["Name"]:
-                if versionCheck(dictReqs["Version"], package["Version"]):
-                    output.append(package)
+        data = request.get_json(force=True)
+        dataList = json.loads(data)
+        for dictReqs in dataList: # loop through all reqs
+            for package in packages:
+                if package["Name"] == dictReqs["Name"]:
+                    if versionCheck(dictReqs["Version"], package["Version"]):
+                        output.append(package)
 
-    totalOutputPages = len(output) / 5
-    if offset > totalOutputPages:
-        offset = totalOutputPages
+        totalOutputPages = len(output) / 5
+        if offset > totalOutputPages:
+            offset = totalOutputPages
 
-    startPackage = (totalOutputPages - 1) * 5
-    outputPage = []
-    for x in range(startPackage, len(output)):
-        outputPage.append(output[x])
+        startPackage = (totalOutputPages - 1) * 5
+        outputPage = []
+        for x in range(startPackage, len(output)):
+            outputPage.append(output[x])
 
-    return outputPage, 200
+        return outputPage, 200
+    except Exception as e:
+        return {"code": -1, "message": "An unexpected error occurred", "exception": str(e), "args": e.args}, 500
 
 @app.route("/reset", methods=['DELETE'])
 def reset():
@@ -376,7 +379,7 @@ def reset():
 
         return {}, 200
     except Exception as e:
-        return {"Exception": str(e)}, 401
+        return {"Exception": str(e), "args": e.args}, 401
 
 
 

@@ -46,6 +46,28 @@ def checkIfFileExists(id):
     except:
         raise Exception("File check failed")
 
+def updateHist(id, typeUpdate, packageList):
+    try:
+        storageClient = storage.Client()
+        bucket = storageClient.bucket(bucketName)
+        downloadPath = os.path.join(os.getcwd(), "Downloads")
+        histFile = os.path.join(downloadPath, id + "history.json")
+        fileToDownload = bucket.blob(id + "history.json")
+        fileToDownload.download_to_filename(str(histFile))
+        with open(histFile, "r") as fptr:
+            listJson = json.load(fptr)
+
+        listJson.append({"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": packageList[id], "Action": typeUpdate})
+
+        with open(histFile, "a") as fptr:
+            json.dump(listJson, fptr)
+
+        files = []
+        files.append(histFile)
+        appService.upload(files)
+    except:
+        raise Exception("update Hist failed")
+
 @app.route("/package/<id>")
 def getPackage(id):
     # Gets the package from google cloud storage and returns the info about it in metadata
@@ -83,6 +105,8 @@ def getPackage(id):
                 repoUrl = jsonData["homepage"]
             except:
                 repoUrl = "No URL Found."
+
+            updateHist(id, "GET", packageList)
         
             return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr.decode('ascii'), "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
         else:
@@ -118,9 +142,8 @@ def putPackage(id):
             files = []
             files.append(str(newFile))
             appService.upload(files)
-            actionHistory[id].append((datetime.now(), "UPDATE"))
-            os.remove(newFile)
-            
+            updateHist(id, "UPDATE", packageList)
+
             return {}, 200
 
         return {}, 400
@@ -132,6 +155,8 @@ def delPackage(id):
     bucket = storageClient.bucket(bucketName)
     blob = bucket.blob(id + ".zip")
     blob.delete()
+    blob = bucket.blob(id + "history.json")
+    blob.delete()
     pass
 
 @app.route("/package/<id>", methods=['DELETE'])
@@ -139,7 +164,6 @@ def delPackageVers(id):
     try:
         packageList = createPackageListDict()
         if (checkIfFileExists(id)):
-            actionHistory.pop(id)
             delPackage(id)
             return {"Trace": "popped key " + id + " from packageList", "packageList": packageList}, 200
         return {}, 400
@@ -166,7 +190,8 @@ def ratePackage(id):
             files.append(fileDownloadPath)
             res = appService.rate(files)
 
-            actionHistory[id].append((datetime.now(), "RATE"))
+            packageList = createPackageListDict()
+            updateHist(id, "RATE", packageList)
 
             return {"RampUp": res[0][1], "Correctness": res[0][2], "BusFactor": res[0][3], "ResponsiveMaintainer": res[0][4], "LicenseScore": res[0][5], "GoodPinningPractice": "Test"}, 200
         return {}, 400
@@ -193,16 +218,11 @@ def getPackageByName(name):
 @app.route("/package/byName/<name>", methods=['DELETE'])
 def delAllPackageVers(name):
     try:
-        storageClient = storage.Client()
-        bucket = storageClient.bucket(bucketName)
         deleted = False
-
         packageList = createPackageListDict()
         for id, info in packageList.items():
             if (info["Name"] == name):
-                actionHistory.pop(id)
-                blob = bucket.blob(id + ".zip")
-                blob.delete()
+                delPackage(id)
                 deleted = True
 
         if deleted:

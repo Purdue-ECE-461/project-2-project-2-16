@@ -28,8 +28,8 @@ def createPackageListDict():
             name = str(blob.name)
             fileType = name [-4:]
             id = name[:-4]
-            version = id[-4:]
-            pkgName = id[:-4]
+            version = id[-5:]
+            pkgName = id[:-5]
             if fileType == ".zip":
                 packageList[id] = {"Name": pkgName, "Version": version, "ID": id}
 

@@ -4,6 +4,7 @@ coverage>=6.0
 cycler>=0.10.0
 Deprecated>=1.2.13
 Flask>=2.0.2
+flask_cors>=3.0.0
 gitdb>=4.0.7
 GitPython>=3.1.20
 gitrisky>=0.1.3

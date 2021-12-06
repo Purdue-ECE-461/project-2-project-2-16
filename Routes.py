@@ -1,11 +1,13 @@
 from re import S
 from flask import Flask, request
+from flask_cors import CORS
 from ApplicationService import *
 from google.cloud import storage
 import zipfile
 import base64
 
 app = Flask(__name__)
+CORS(app)
 
 actionHistory = dict() # maps String id to [(date, action)],...
 
@@ -26,8 +28,8 @@ def createPackageListDict():
             name = str(blob.name)
             fileType = name [-4:]
             id = name[:-4]
-            version = id[-6:]
-            pkgName = id[:-6]
+            version = id[-4:]
+            pkgName = id[:-4]
             if fileType == ".zip":
                 packageList[id] = {"Name": pkgName, "Version": version, "ID": id}
 

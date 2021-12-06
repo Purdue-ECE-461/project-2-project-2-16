@@ -5,6 +5,7 @@ from ApplicationService import *
 from google.cloud import storage
 import zipfile
 import base64
+import re
 
 app = Flask(__name__)
 CORS(app)
@@ -28,8 +29,9 @@ def createPackageListDict():
             name = str(blob.name)
             fileType = name [-4:]
             id = name[:-4]
-            version = id[-5:]
-            pkgName = id[:-5]
+            matchVersion = re.search("\d+\.\d+\.\d+", id)
+            version = matchVersion.group()
+            pkgName = id[:-(matchVersion.span()[0])]
             if fileType == ".zip":
                 packageList[id] = {"Name": pkgName, "Version": version, "ID": id}
 
@@ -226,7 +228,7 @@ def getPackageByName(name):
                 fileToDownload.download_to_filename(str(downloadFile)) # path to local file
 
                 with open(downloadFile, "r") as fptr:
-                    jsonOut.append(json.load(fptr.read()))
+                    jsonOut.append(json.load(fptr))
             
         if not jsonOut:
             return {}, 400

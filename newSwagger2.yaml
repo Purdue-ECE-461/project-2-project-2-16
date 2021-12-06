@@ -8,6 +8,9 @@ info:
     name: Prof. Davis
     url: http://davisjam.github.io
 host: x-ripple-333802.appspot.com
+x-google-endpoints:
+- name: "x-ripple-333802.appspot.com"
+  allowCors: True
 basePath: /
 securityDefinitions: {}
 schemes:

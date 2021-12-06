@@ -68,7 +68,7 @@ def updateHist(id, typeUpdate, packageList):
 
         try:
             with open(histFile, "w") as fptr:
-                json.dump(listJson, fptr)
+                json.dump(listJson, fptr, indent=4)
         except:
             raise Exception("could not write json")
 
@@ -133,7 +133,11 @@ def putPackage(id):
         if checkIfFileExists(id):
             if (res["metadata"]["Name"] != packageList[id]["Name"] or res["metadata"]["Version"] != packageList[id]["Version"] or res["metadata"]["ID"] != packageList[id]["ID"]):
                 return {"Warning": "metadata of package did not match", "packageList": packageList}, 400
-            delPackage(id) # delete old package without removing package from history dictionaries
+           
+            storageClient = storage.Client()
+            bucket = storageClient.bucket(bucketName)
+            blob = bucket.blob(id + ".zip")
+            blob.delete()
 
             newDir = "new_zips"
             newPath = os.path.join(os.getcwd(), newDir)

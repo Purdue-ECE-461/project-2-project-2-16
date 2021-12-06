@@ -235,6 +235,7 @@ def delAllPackageVers(name):
         return {"exception": str(e), 'args': e.args}, 400
 
 @app.route("/package", methods=['POST'])
+@cross_origin()
 def createPackage():
     packageList = createPackageListDict()
     try:

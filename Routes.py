@@ -207,8 +207,20 @@ def getPackageByName(name):
         packageList = createPackageListDict()
         for id, info in packageList.items():
             if (info["Name"] == name):
-                for y in actionHistory[id]:
-                    jsonOut.append({"Date": y[0], "PackageMetadata": info, "Action": y[1]})
+                downloadPath = os.path.join(os.getcwd(), "Downloads")
+                downloadFile = os.path.join(downloadPath, id + ".zip")
+
+                if not os.path.exists(downloadPath):
+                    os.makedirs(downloadPath)
+                    
+                storageClient = storage.Client()
+                bucket = storageClient.bucket(bucketName)
+                fileToDownload = bucket.blob(id + "history.json")
+                fileToDownload.download_to_filename(str(downloadFile)) # path to local file
+
+                with open(downloadFile, "r") as fptr:
+                    jsonOut.append(json.loads(downloadFile))
+            
         if not jsonOut:
             return {}, 400
         

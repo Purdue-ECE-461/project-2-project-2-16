@@ -56,19 +56,25 @@ def updateHist(id, typeUpdate, packageList):
         histFile = os.path.join(downloadPath, id + "history.json")
         fileToDownload = bucket.blob(id + "history.json")
         fileToDownload.download_to_filename(str(histFile))
-        with open(histFile, "r") as fptr:
-            listJson = json.load(fptr)
+        try:
+            with open(histFile, "r") as fptr:
+                listJson = json.load(fptr)
+        except:
+            raise Exception("could not load json")
 
         listJson.append({"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": packageList[id], "Action": typeUpdate})
 
-        with open(histFile, "a") as fptr:
-            json.dump(listJson, fptr)
+        try:
+            with open(histFile, "w") as fptr:
+                json.dump(listJson, fptr)
+        except:
+            raise Exception("could not write json")
 
         files = []
         files.append(histFile)
         appService.upload(files)
-    except:
-        raise Exception("update Hist failed", listJson)
+    except Exception as e:
+        raise Exception("update Hist failed", str(e))
 
 @app.route("/package/<id>")
 def getPackage(id):

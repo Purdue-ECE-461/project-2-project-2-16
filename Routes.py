@@ -378,9 +378,9 @@ def listPackages():
         output = []
 
         data = request.get_json(force=True)
-        dataList = json.loads(data)
+        # dataList = json.loads(data)
         # sort through and get all possible packages to print
-        for dictReqs in dataList: # loop through all reqs
+        for dictReqs in data: # loop through all reqs
             for package in packages:
                 if package["Name"] == dictReqs["Name"]:
                     if versionCheck(dictReqs["Version"], package["Version"]):

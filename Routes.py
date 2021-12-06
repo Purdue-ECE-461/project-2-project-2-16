@@ -57,7 +57,7 @@ def updateHist(id, typeUpdate, packageList):
         fileToDownload = bucket.blob(id + "history.json")
         fileToDownload.download_to_filename(str(histFile))
         with open(histFile, "r") as fptr:
-            listJson = json.load(fptr)
+            listJson = json.load(fptr.read())
 
         listJson.append({"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": packageList[id], "Action": typeUpdate})
 
@@ -102,8 +102,8 @@ def getPackage(id):
 
             try:
                 jsonFile = os.path.join(unzipPath, "package.json")
-                fptr = open(jsonFile)
-                jsonData = json.load(fptr)
+                with open(jsonFile, "r") as fptr:
+                    jsonData = json.load(fptr.read())    
                 repoUrl = jsonData["homepage"]
             except:
                 repoUrl = "No URL Found."
@@ -220,7 +220,7 @@ def getPackageByName(name):
                 fileToDownload.download_to_filename(str(downloadFile)) # path to local file
 
                 with open(downloadFile, "r") as fptr:
-                    jsonOut.append(json.loads(downloadFile))
+                    jsonOut.append(json.load(fptr.read()))
             
         if not jsonOut:
             return {}, 400

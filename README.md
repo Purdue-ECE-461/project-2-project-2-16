@@ -1,5 +1,1 @@
-# project-1-project-1-15
-
-Week 2: Sample input/output
-
-  We do the authentication using requests.get() in python.
+Our API can be sent requests at https://x-ripple-333802.uc.r.appspot.com/. A front end for our application exists at <FRONTEND URL>. When accessing the API, always ensure to check the returned data, as the ID sent in may not be (most likely, won't be) the official ID of the package stored in the registry.

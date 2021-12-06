@@ -1,6 +1,6 @@
 from re import S
 from flask import Flask, request
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from ApplicationService import *
 from google.cloud import storage
 import zipfile

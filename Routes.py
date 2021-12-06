@@ -31,7 +31,7 @@ def createPackageListDict():
             id = name[:-4]
             matchVersion = re.search("\d+\.\d+\.\d+", id)
             version = matchVersion.group()
-            pkgName = id[:-(matchVersion.span()[0])]
+            pkgName = id[:-(len(matchVersion.group()))]
             if fileType == ".zip":
                 packageList[id] = {"Name": pkgName, "Version": version, "ID": id}
 

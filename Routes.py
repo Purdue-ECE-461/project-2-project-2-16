@@ -136,7 +136,8 @@ def putPackage(id):
             newFile = os.path.join(newPath, id + ".zip")
 
             zipEncodedStr = res["data"]["Content"]
-            zipDecoded = base64.b64decode(zipEncodedStr)
+            newZipStr = zipEncodedStr + ((4 - (len(zipEncodedStr) % 4)) * "=")
+            zipDecoded = base64.b64decode(newZipStr)
 
             with open(newFile, 'wb') as fptr:
                 fptr.write(zipDecoded)
@@ -208,7 +209,7 @@ def getPackageByName(name):
         for id, info in packageList.items():
             if (info["Name"] == name):
                 downloadPath = os.path.join(os.getcwd(), "Downloads")
-                downloadFile = os.path.join(downloadPath, id + ".zip")
+                downloadFile = os.path.join(downloadPath, id + "history.json")
 
                 if not os.path.exists(downloadPath):
                     os.makedirs(downloadPath)

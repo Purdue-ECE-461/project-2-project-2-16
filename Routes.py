@@ -55,6 +55,9 @@ def updateHist(id, typeUpdate, packageList):
         storageClient = storage.Client()
         bucket = storageClient.bucket(bucketName)
         downloadPath = os.path.join(os.getcwd(), "Downloads")
+        if not os.path.exists(downloadPath):
+                os.makedirs(downloadPath)
+        
         histFile = os.path.join(downloadPath, id + "history.json")
         fileToDownload = bucket.blob(id + "history.json")
         fileToDownload.download_to_filename(str(histFile))

@@ -63,7 +63,7 @@ class ApplicationService:
                 
             # error if package.json does not exist
             try:
-                packageJsonPath = os.path.join(newPath, "package.json")
+                packageJsonPath = os.path.join(newPath, p[:-4], "package.json")
             except:
                 raise Exception("json package")
             try:

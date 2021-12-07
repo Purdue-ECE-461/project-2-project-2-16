@@ -59,8 +59,10 @@ class ApplicationService:
             print(p)
 
             with zipfile.ZipFile(p, "r") as zipRef:
+                fileList = zipRef.namelist()
+                dir = (fileList[0].split("/"))[0]
                 zipRef.extractall(newPath)
-                unzipFilePath = os.path.join(newPath, zipRef.filename)
+                unzipFilePath = os.path.join(newPath, dir)
             # error if package.json does not exist
             
             packageJsonPath = os.path.join(unzipFilePath, "package.json")

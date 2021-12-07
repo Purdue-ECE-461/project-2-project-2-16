@@ -5,3 +5,4 @@ unzipped_repo
 .env
 google-cloud-creds.json
 new_zips
+bin

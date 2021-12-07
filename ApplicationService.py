@@ -64,10 +64,10 @@ class ApplicationService:
             # error if package.json does not exist
             fileName = p.split("/")[-1]
             fileName = fileName[:-4]
-            #fptr = open(newPath + "/" + fileName + '/package.json')
-            #jsonData = json.load(fptr)
-            #repoUrl = jsonData["homepage"]
-            score = scoreUrl("https://github.com/jashkenas/underscore")
+            fptr = open(newPath + "/" + fileName + '/package.json')
+            jsonData = json.load(fptr)
+            repoUrl = jsonData["homepage"]
+            score = scoreUrl(repoUrl, jsonData)
             resultsForRepo[p] = score
             results.append(resultsForRepo)
 

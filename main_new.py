@@ -26,11 +26,12 @@ headers = {
     'Authorization': 'token %s' % Git_Token
 }
 weights = {
-    'ramp-up': 1,
-    'num_case': 3,
-    'num_maintainer': 4,
-    'log': 1,
-    'license': 1
+    'ramp-up': 0.1,
+    'correct': 0.3,
+    'maintainer': 0.3,
+    'bus-factor': 0.1,
+    'license': 0.1,
+    'dependencies': 0.1
 }
 
 params = {

@@ -66,8 +66,11 @@ class ApplicationService:
                 packageJsonPath = os.path.join(newPath, "package.json")
             except:
                 raise Exception("json package")
-            with open(packageJsonPath, "r") as fptr:
-                jsonData = json.load(fptr)
+            try:
+                with open(packageJsonPath, "r") as fptr:
+                    jsonData = json.load(fptr)
+            except:
+                raise Exception(os.listdir(newPath))
 
             repoUrl = jsonData["homepage"]
             score = scoreUrl(repoUrl, jsonData)

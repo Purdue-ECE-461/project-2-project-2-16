@@ -39,6 +39,7 @@ def handler(signum, frame): #adopted from https://stackoverflow.com/questions/49
 
 def GitRequest(owner, repo):
     address = f"https://api.github.com/repos/{owner}/{repo}"
+    # api.github.com/user/repos
     r = requests.get(address, headers=headers, params=params)
     return r.json()
 
@@ -112,7 +113,10 @@ def get_correctness(json, git_url, repo_name):
 
     return scoreValue
 
-def calculator(json_dict, url, repo, git_url):
+def get_dep_score(jsonData):
+    return 0.5
+
+def calculator(json_dict, url, repo, git_url, jsonData):
     ramp_up_score = get_ramp_up(json_dict)
     print("finished ramp up score")
     # correctness_score = get_correctness(json) #this calls another program, and test the test case
@@ -135,8 +139,11 @@ def calculator(json_dict, url, repo, git_url):
     lic = get_license(json_dict)
     print("got license")
 
-    net = sum([weights["ramp-up"] * ramp_up_score, weights["correct"] * correctness, weights["bus-factor"] * bus_factor, weights["maintainer"] * responsive_score, weights["license"] * license])
-    results[url] = [net, ramp_up_score, correctness, bus_factor, responsive_score, lic]
+    dep_score = get_dep_score(jsonData)
+
+    # asdfasdf
+    net = sum([weights["ramp-up"] * ramp_up_score, weights["correct"] * correctness, weights["bus-factor"] * bus_factor, weights["maintainer"] * responsive_score, weights["license"] * lic, weights["dependencies"] * dep_score])
+    results[url] = [net, ramp_up_score, correctness, bus_factor, responsive_score, lic, dep_score]
     pass
 
 
@@ -201,7 +208,7 @@ def print_score():
     #         print(i, end=" ")
     #     print("")
 
-def get_score(user_input):
+def get_score(user_input, jsonData):
     fp = open(user_input, "r")
     urls = fp.readlines()
     print("stripped urls")
@@ -211,17 +218,17 @@ def get_score(user_input):
         owner, repo, git_url= url_to_user(url)
         json = GitRequest(owner, repo)
         print("completed json request for repo: " + repo)
-        calculator(json, url, repo, git_url)
+        calculator(json, url, repo, git_url, jsonData)
         print("calculated score for repo: " + repo)
 
     print_score()
 
-def scoreUrl(url):
+def scoreUrl(url, jsonData):
     url = url.strip()
     results[url] = []
     owner, repo, git_url = url_to_user(url)
     json = GitRequest(owner, repo)
-    calculator(json, url, repo, git_url)
+    calculator(json, url, repo, git_url, jsonData)
 
     print_score()
 

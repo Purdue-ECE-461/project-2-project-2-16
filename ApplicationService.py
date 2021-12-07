@@ -64,7 +64,7 @@ class ApplicationService:
             fptr = open(newPath + "/" + fileName + '/package.json')
             jsonData = json.load(fptr)
             repoUrl = jsonData["homepage"]
-            score = scoreUrl(repoUrl)
+            score = scoreUrl(repoUrl, jsonData)
             resultsForRepo[p] = score
             results.append(resultsForRepo)
 

@@ -62,12 +62,13 @@ class ApplicationService:
                 zipRef.extractall(newPath)
                 
             # error if package.json does not exist
-            fileName = p.split("/")[-1]
-            fileName = fileName[:-4]
-            packageJsonPath = os.path.join(newPath, "package.json")
+            try:
+                packageJsonPath = os.path.join(newPath, "package.json")
+            except:
+                raise Exception("json package")
             with open(packageJsonPath, "r") as fptr:
                 jsonData = json.load(fptr)
-                
+
             repoUrl = jsonData["homepage"]
             score = scoreUrl(repoUrl, jsonData)
             resultsForRepo[p] = score

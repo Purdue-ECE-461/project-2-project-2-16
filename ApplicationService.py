@@ -60,9 +60,10 @@ class ApplicationService:
 
             with zipfile.ZipFile(p, "r") as zipRef:
                 zipRef.extractall(newPath)
-                
+                unzipFilePath = os.path.join(newPath, zipRef.filename)
             # error if package.json does not exist
-            packageJsonPath = os.path.join(newPath, p[:-4], "package.json")
+            
+            packageJsonPath = os.path.join(unzipFilePath, "package.json")
             try:
                 with open(packageJsonPath, "r") as fptr:
                     jsonData = json.load(fptr)

@@ -3,7 +3,7 @@ import subprocess
 import os
 import signal
 from requests.models import encode_multipart_formdata
-#import simplejson as json
+import simplejson as json
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -21,9 +21,10 @@ headers = {
 weights = {
     'ramp-up': 0.1,
     'correct': 0.3,
-    'maintainer': 0.4,
+    'maintainer': 0.3,
     'bus-factor': 0.1,
-    'license': 0.1
+    'license': 0.1,
+    'dependencies': 0.1
 }
 
 params = {
@@ -133,11 +134,11 @@ def calculator(json_dict, url, repo, git_url):
 
     responsive_score = get_responsive_score(json_dict)
     print("finished responsive score")
-    license = get_license(json_dict)
+    lic = get_license(json_dict)
     print("got license")
 
     net = sum([weights["ramp-up"] * ramp_up_score, weights["correct"] * correctness, weights["bus-factor"] * bus_factor, weights["maintainer"] * responsive_score, weights["license"] * license])
-    results[url] = [net, ramp_up_score, correctness, bus_factor, responsive_score, license]
+    results[url] = [net, ramp_up_score, correctness, bus_factor, responsive_score, lic]
     pass
 
 

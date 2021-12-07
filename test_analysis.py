@@ -12,7 +12,7 @@ def main():
     r = requests.get('https://api.github.com/cloudinary/cloudinary_npm',  auth=('user', 'pass'))
     #https://github.com/cloudinary/cloudinary_npm
 
-    print(r.json()['devDependencies'])
+    print(r.json())
     
     # Tried pipdeptree?
     

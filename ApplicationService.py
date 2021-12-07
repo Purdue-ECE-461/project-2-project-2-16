@@ -59,18 +59,15 @@ class ApplicationService:
             print(p)
 
             with zipfile.ZipFile(p, "r") as zipRef:
-                zipRef.extractall()
+                zipRef.extractall(newPath)
                 
             # error if package.json does not exist
-            try:
-                packageJsonPath = os.path.join(newPath, "package.json")
-            except:
-                raise Exception("json package")
+            packageJsonPath = os.path.join(newPath, p[:-4], "package.json")
             try:
                 with open(packageJsonPath, "r") as fptr:
                     jsonData = json.load(fptr)
             except:
-                raise Exception(os.listdir(newPath))
+                raise Exception(os.listdir(newPath + "/underscore-master"))
 
             repoUrl = jsonData["homepage"]
             score = scoreUrl(repoUrl, jsonData)

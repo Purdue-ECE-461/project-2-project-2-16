@@ -58,11 +58,14 @@ class ApplicationService:
 
             print(p)
 
-            with zipfile.ZipFile(p, "r") as zipRef:
-                fileList = zipRef.namelist()
-                dir = (fileList[0].split("/"))[0]
-                zipRef.extractall(newPath)
-                unzipFilePath = os.path.join(newPath, dir)
+            try:
+                with zipfile.ZipFile(p, "r") as zipRef:
+                    fileList = zipRef.namelist()
+                    splitDir = fileList[0].split("/")
+                    zipRef.extractall(newPath)
+                    unzipFilePath = os.path.join(newPath, splitDir[0])
+            except:
+                raise Exception("Read in rate error")
             # error if package.json does not exist
             
             packageJsonPath = os.path.join(unzipFilePath, "package.json")

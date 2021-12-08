@@ -371,7 +371,7 @@ def createPackage():
                     except:
                         raise Exception("Upload failed")
                 else:
-                    return 403
+                    return {}, 403
             except Exception as e:
                 raise Exception("Ingest in Routes", str(e), "request=", str(r))
 

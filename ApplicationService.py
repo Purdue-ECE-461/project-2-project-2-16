@@ -55,6 +55,7 @@ class ApplicationService:
 
             for p in packageList:
                 resultsForRepo = dict()
+                key = p.split("/")[-1][:-4]
 
                 try:
                     with zipfile.ZipFile(p, "r") as zipRef:
@@ -84,7 +85,7 @@ class ApplicationService:
                     score = scoreUrl(repoUrl, author, repo, jsonData)
                 except Exception as e:
                     raise Exception("score Url does not work", str(e), repoUrl)
-                resultsForRepo[p] = score
+                resultsForRepo[key] = score
                 results.append(resultsForRepo)
                 
 

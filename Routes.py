@@ -214,7 +214,7 @@ def ratePackage(id):
             packageList = createPackageListDict()
             updateHist(id, "RATE", packageList)
             try:
-                scoreDict = {"RampUp": res[0][1], "Correctness": res[0][2], "BusFactor": res[0][3], "ResponsiveMaintainer": res[0][4], "LicenseScore": res[0][5], "GoodPinningPractice": res[0][6]}
+                scoreDict = {"RampUp": res[0][id][1], "Correctness": res[0][id][2], "BusFactor": res[0][id][3], "ResponsiveMaintainer": res[0][id][4], "LicenseScore": res[0][id][5], "GoodPinningPractice": res[0][id][6]}
             except Exception as e:
                 raise Exception("scoreDict fail", str(e), res[0])
             return scoreDict, 200

@@ -74,7 +74,11 @@ class ApplicationService:
                 except:
                     raise Exception(os.listdir(newPath + "/underscore-master"))
 
-                repoUrl = jsonData["homepage"]
+                repoUrl = jsonData["repository"]["url"]
+                splitUrl = repoUrl.split("/")
+                author = splitUrl[-2]
+                repo = splitUrl[-1]
+                repoUrl = "https://github.com/" + author + "/" + repo
                 try:
                     score = scoreUrl(repoUrl, jsonData)
                 except Exception as e:

@@ -353,7 +353,12 @@ def createPackage():
             try:
                 files = []
                 files.append(str(newFile))
-                if appService.ingest(files):
+                try:
+                    res = appService.rate(files)
+                except Exception as e:
+                    raise Exception("rate fail in ingest", str(e))
+
+                if res[0][id][0] > .5:
                     histEntry = []
                     histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "INGEST"})
                     with open(newHistFile, "w") as fptr:
@@ -362,8 +367,6 @@ def createPackage():
                         except:
                             raise Exception("Json string fail")
 
-                    files = []
-                    files.append(str(newFile))
                     files.append(str(newHistFile))
 
                     try:
@@ -371,7 +374,7 @@ def createPackage():
                     except:
                         raise Exception("Upload failed")
                 else:
-                    return {}, 403
+                    return {"Package net score was not high enough. Score": res[0][id][0]}, 403
             except Exception as e:
                 raise Exception("Ingest in Routes", str(e), "request=", str(r))
 

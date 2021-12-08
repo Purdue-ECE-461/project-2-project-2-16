@@ -244,7 +244,7 @@ def scoreUrl(url, jsonData):
     try:
         owner, repo, git_url = url_to_user(url)
     except Exception as e:
-        raise Exception("Url to user fail", str(e))
+        raise Exception("Url to user fail", str(e), str(url), str(type(url)))
     try:
         json = GitRequest(owner, repo)
     except Exception as e:

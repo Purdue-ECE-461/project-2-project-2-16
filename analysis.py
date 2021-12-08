@@ -56,7 +56,7 @@ def get_ramp_up(json):
 
 
 def get_bus_factor(json):
-    watch = json["watchers"]
+    watch = json["watchers_count"]
     if watch > 1000:
         return 1
     
@@ -231,8 +231,9 @@ def get_score(user_input, jsonData):
         results[url] = []
         owner, repo, git_url= url_to_user(url)
         json = GitRequest(owner, repo)
+        print(json)
         print("completed json request for repo: " + repo)
-        calculator(json, url, repo, git_url, jsonData)
+        #calculator(json, url, repo, git_url, jsonData)
         print("calculated score for repo: " + repo)
 
     print_score()

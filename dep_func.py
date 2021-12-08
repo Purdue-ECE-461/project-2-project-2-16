@@ -42,7 +42,7 @@ def get_dep(package):
     return not_pinned / (pinned + not_pinned)
 
             
-""" def main():
+def main():
     # package.json from cloudinary_npm
     package = \
         {
@@ -127,4 +127,4 @@ def get_dep(package):
 
 if __name__ == '__main__':
     main()
- """
+ 

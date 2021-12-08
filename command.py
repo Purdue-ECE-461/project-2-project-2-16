@@ -36,7 +36,7 @@ def figure_out_command(user_input):
     elif user_command == "URL_SET":
         try:
             print("starting scoring with " + user_input)
-            get_score(user_input)
+            get_score(user_input, {"test": 1})
             
         except RuntimeError:
             print("Score evaluation does not work correctly")

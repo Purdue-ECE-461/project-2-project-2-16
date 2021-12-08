@@ -78,7 +78,7 @@ class ApplicationService:
                 try:
                     score = scoreUrl(repoUrl, jsonData)
                 except Exception as e:
-                    raise Exception("score Url does not work", str(e))
+                    raise Exception("score Url does not work", str(e), "repoURL: " + repoUrl)
                 resultsForRepo[p] = score
                 results.append(resultsForRepo)
                 

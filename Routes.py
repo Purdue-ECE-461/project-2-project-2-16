@@ -322,14 +322,17 @@ def createPackage():
                 raise Exception("Upload failed")
 
         else: # Ingestion
-            splitStr = data["data"]["URL"].split("/")
-            author, repo = splitStr[-2], splitStr[-1]
-            url = "https://api.github.com/repos/" + author + "/" + repo + "zipball"
+            try:
+                splitStr = data["data"]["URL"].split("/")
+                author, repo = splitStr[-2], splitStr[-1]
+                url = "https://api.github.com/repos/" + author + "/" + repo + "zipball"
 
-            headers = {
-                'content-type': 'application/json',
-                'Accept-Charset': 'UTF-8',
-                'Authorization': f'token {GITHUB_TOKEN}'}
+                headers = {
+                    'content-type': 'application/json',
+                    'Accept-Charset': 'UTF-8',
+                    'Authorization': f'token {GITHUB_TOKEN}'}
+            except Exception as e:
+                raise Exception("beginning ingest")
 
             try:
                 r = requests.get(url, headers=headers)
@@ -345,24 +348,28 @@ def createPackage():
             except Exception as e:
                 raise Exception("write zip fail", str(e))
 
-            if appService.ingest(str(newFile)):
-                histEntry = []
-                histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "INGEST"})
-                with open(newHistFile, "w") as fptr:
+            try:
+                if appService.ingest(str(newFile)):
+                    histEntry = []
+                    histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "INGEST"})
+                    with open(newHistFile, "w") as fptr:
+                        try:
+                            json.dump(histEntry, fptr, indent=4)
+                        except:
+                            raise Exception("Json string fail")
+
+                    files = []
+                    files.append(str(newFile))
+                    files.append(str(newHistFile))
+
                     try:
-                        json.dump(histEntry, fptr, indent=4)
+                        appService.upload(files)
                     except:
-                        raise Exception("Json string fail")
-
-                files = []
-                files.append(str(newHistFile))
-
-                try:
-                    appService.upload(files)
-                except:
-                    raise Exception("Upload failed")
-            else:
-                return 403
+                        raise Exception("Upload failed")
+                else:
+                    return 403
+            except Exception as e:
+                raise Exception("Ingest in Routes", str(e))
 
         return {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id, "packageList": packageList}, 201
         

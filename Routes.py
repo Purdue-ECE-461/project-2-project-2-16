@@ -326,7 +326,7 @@ def createPackage():
             try:
                 splitStr = data["data"]["URL"].split("/")
                 author, repo = splitStr[-2], splitStr[-1]
-                url = "https://api.github.com/repos/" + author + "/" + repo + "zipball"
+                url = "https://api.github.com/repos/" + author + "/" + repo + "/zipball"
 
                 headers = {
                     'Accept': 'application/vnd.github.v3+json',

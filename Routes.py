@@ -331,7 +331,10 @@ def createPackage():
                 'Accept-Charset': 'UTF-8',
                 'Authorization': f'token {GITHUB_TOKEN}'}
 
-            r = requests.get(url, headers=headers)
+            try:
+                r = requests.get(url, headers=headers)
+            except Exception as e:
+                raise("Request fail", str(e))
 
             if r.status_code != 200:
                 raise Exception("Could not get zip file of repo from GitHub.")
@@ -342,6 +345,19 @@ def createPackage():
             if appService.ingest(str(newFile)):
                 histEntry = []
                 histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "INGEST"})
+                with open(newHistFile, "w") as fptr:
+                    try:
+                        json.dump(histEntry, fptr, indent=4)
+                    except:
+                        raise Exception("Json string fail")
+
+                files = []
+                files.append(str(newHistFile))
+
+                try:
+                    appService.upload(files)
+                except:
+                    raise Exception("Upload failed")
             else:
                 return 403
 

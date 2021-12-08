@@ -119,18 +119,21 @@ class ApplicationService:
     def ingest(self, package):
         # ingest a module into the registry
         # score repo, if net score > x, upload
-        results = self.rate(package)
-        id = package.split("/")[-1][:-4]
-        for i, p in enumerate(package):
-            if results[i][id][0] > .5: # ingest score
-                self.upload(p)
-                print("Module ingested.")
-                return True
-            else:
-                print("Module was not trustworthy enough to be ingested.")
-                print("Module scored: " + str(results[p][0]))
-                print("Cutoff is: .5")
-                return False
+        try:
+            results = self.rate(package)
+            id = package.split("/")[-1][:-4]
+            for i, p in enumerate(package):
+                if results[i][id][0] > .5: # ingest score
+                    self.upload(p)
+                    print("Module ingested.")
+                    return True
+                else:
+                    print("Module was not trustworthy enough to be ingested.")
+                    print("Module scored: " + str(results[p][0]))
+                    print("Cutoff is: .5")
+                    return False
+        except Exception as e:
+            raise Exception("ingest fail", str(e))
         pass
 
     def audit(self, packageList):

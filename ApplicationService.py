@@ -33,7 +33,6 @@ class ApplicationService:
         storageClient = storage.Client()
         #bucketName = "ece-461-project-2-registry"
         bucket = storageClient.bucket(self.bucketName)
-        bucket = storageClient.bucket(bucketName)
         for p in packageList:
             splitString = p.split("/")
             fileToCheck = bucket.blob(splitString[-1])
@@ -121,8 +120,9 @@ class ApplicationService:
         # ingest a module into the registry
         # score repo, if net score > x, upload
         results = self.rate(package)
-        for p in package:
-            if results[p][0] > .5: # ingest score
+        id = package.split("/")[-1][:-4]
+        for i, p in enumerate(package):
+            if results[i][id][0] > .5: # ingest score
                 self.upload(p)
                 print("Module ingested.")
                 return True

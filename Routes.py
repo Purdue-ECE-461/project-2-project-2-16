@@ -6,6 +6,7 @@ from google.cloud import storage
 import zipfile
 import base64
 import re
+import requests
 
 app = Flask(__name__)
 CORS(app)
@@ -214,7 +215,7 @@ def ratePackage(id):
             packageList = createPackageListDict()
             updateHist(id, "RATE", packageList)
             try:
-                scoreDict = {"Net": res[0][id][0], "RampUp": res[0][id][1], "Correctness": res[0][id][2], "BusFactor": res[0][id][3], "ResponsiveMaintainer": res[0][id][4], "LicenseScore": res[0][id][5], "GoodPinningPractice": res[0][id][6]}
+                scoreDict = {"RampUp": res[0][id][1], "Correctness": res[0][id][2], "BusFactor": res[0][id][3], "ResponsiveMaintainer": res[0][id][4], "LicenseScore": res[0][id][5], "GoodPinningPractice": res[0][id][6]}
             except Exception as e:
                 raise Exception("scoreDict fail", str(e), res[0])
             return scoreDict, 200
@@ -321,9 +322,26 @@ def createPackage():
                 raise Exception("Upload failed")
 
         else: # Ingestion
+            splitStr = data["data"]["URL"].split("/")
+            author, repo = splitStr[-2], splitStr[-1]
+            url = "https://api.github.com/repos/" + author + "/" + repo + "zipball"
+
+            headers = {
+                'content-type': 'application/json',
+                'Accept-Charset': 'UTF-8',
+                'Authorization': f'token {GITHUB_TOKEN}'}
+
+            r = requests.get(url, headers=headers)
+
+            if r.status_code != 200:
+                raise Exception("Could not get zip file of repo from GitHub.")
+
+            with open(newFile, "wb") as fptr:
+                fptr.write(r.content)
+
             if appService.ingest(str(newFile)):
-                actionHistory[id] = []
-                actionHistory[id].append((datetime.now(), "CREATE"))
+                histEntry = []
+                histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "INGEST"})
             else:
                 return 403
 

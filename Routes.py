@@ -430,7 +430,7 @@ def listPackages():
         except:
             raise Exception("compare error")
 
-        startPackage = (totalOutputPages - 1) * 5
+        startPackage = totalOutputPages * 5
         outputPage = []
         try:
             for x in range(startPackage, len(output)): # paginate the output

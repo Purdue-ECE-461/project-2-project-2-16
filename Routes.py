@@ -275,8 +275,6 @@ def createPackage():
     packageList = createPackageListDict()
     try:
         data = request.get_json(force=True)
-        encString = data["data"]["Content"]
-        zipDecoded = base64.b64decode(encString)
 
         newDir = "new_zips"
         newPath = os.path.join(os.getcwd(), newDir)
@@ -299,6 +297,9 @@ def createPackage():
         newHistFile = os.path.join(histPath, data["metadata"]["Name"] + data["metadata"]["Version"] + "history.json")
     
         if "Content" in data["data"]: # Creation
+            encString = data["data"]["Content"]
+            zipDecoded = base64.b64decode(encString)
+            
             with open(newFile, 'wb') as fptr:
                 fptr.write(zipDecoded)
             

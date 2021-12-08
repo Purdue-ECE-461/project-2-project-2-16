@@ -370,7 +370,7 @@ def createPackage():
                 else:
                     return 403
             except Exception as e:
-                raise Exception("Ingest in Routes", str(e), "request=", r)
+                raise Exception("Ingest in Routes", str(e), "request=", str(r))
 
         return {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id, "packageList": packageList}, 201
         

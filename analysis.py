@@ -131,8 +131,6 @@ def calculator(json_dict, url, repo, git_url, jsonData):
         raise Exception("bus factor error")
 
     #time out the correctness function, because it uses ML regression, it might take too long
-    signal.signal(signal.SIGALRM, handler)
-    signal.alarm(120)
     try:
         correctness = get_correctness(json_dict, git_url, repo)
     except Exception as exc:
@@ -153,8 +151,11 @@ def calculator(json_dict, url, repo, git_url, jsonData):
         raise Exception("Dep error")
 
     # asdfasdf
-    net = sum([weights["ramp-up"] * ramp_up_score, weights["correct"] * correctness, weights["bus-factor"] * bus_factor, weights["maintainer"] * responsive_score, weights["license"] * lic, weights["dependencies"] * dep_score])
-    results[url] = [net, ramp_up_score, correctness, bus_factor, responsive_score, lic, dep_score]
+    try:
+        net = sum([weights["ramp-up"] * ramp_up_score, weights["correct"] * correctness, weights["bus-factor"] * bus_factor, weights["maintainer"] * responsive_score, weights["license"] * lic, weights["dependencies"] * dep_score])
+        results[url] = [net, ramp_up_score, correctness, bus_factor, responsive_score, lic, dep_score]
+    except Exception as e:
+        raise Exception("Net score error", str(e))
     pass
 
 

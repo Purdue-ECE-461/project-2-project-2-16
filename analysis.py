@@ -56,11 +56,14 @@ def get_ramp_up(json):
 
 
 def get_bus_factor(json):
-    watch = json["watchers_count"]
-    if watch > 1000:
-        return 1
-    
-    return watch / 1000
+    try:
+        watch = json["watchers_count"]
+        if watch > 1000:
+            return 1
+        
+        return watch / 1000
+    except:
+        raise Exception("Json: ", json)
     #contri_url = json['contributors_url']
     #r = requests.get(contri_url)
     #print(r.json())

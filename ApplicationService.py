@@ -43,45 +43,46 @@ class ApplicationService:
         pass
 
     def rate(self, packageList):
+        try:
         # score a list of packages (zip files)
-        results = []
+            results = []
 
-        currentDir = os.getcwd()
-        newDir = "unzipped_repo"
-        newPath = os.path.join(currentDir, newDir)
+            currentDir = os.getcwd()
+            newDir = "unzipped_repo"
+            newPath = os.path.join(currentDir, newDir)
 
-        if not os.path.exists(newPath):
-            os.makedirs(newPath)
+            if not os.path.exists(newPath):
+                os.makedirs(newPath)
 
-        for p in packageList:
-            resultsForRepo = dict()
+            for p in packageList:
+                resultsForRepo = dict()
 
-            print(p)
+                try:
+                    with zipfile.ZipFile(p, "r") as zipRef:
+                        fileList = zipRef.namelist()
+                        splitDir = fileList[0].split("/")
+                        zipRef.extractall(newPath)
+                        unzipFilePath = os.path.join(newPath, splitDir[0])
+                except:
+                    raise Exception("Read in rate error")
+                # error if package.json does not exist
+                
+                packageJsonPath = os.path.join(unzipFilePath, "package.json")
+                try:
+                    with open(packageJsonPath, "r") as fptr:
+                        jsonData = json.load(fptr)
+                except:
+                    raise Exception(os.listdir(newPath + "/underscore-master"))
 
-            try:
-                with zipfile.ZipFile(p, "r") as zipRef:
-                    fileList = zipRef.namelist()
-                    splitDir = fileList[0].split("/")
-                    zipRef.extractall(newPath)
-                    unzipFilePath = os.path.join(newPath, splitDir[0])
-            except:
-                raise Exception("Read in rate error")
-            # error if package.json does not exist
+                repoUrl = jsonData["homepage"]
+                score = scoreUrl(repoUrl, jsonData)
+                resultsForRepo[p] = score
+                results.append(resultsForRepo)
+
             
-            packageJsonPath = os.path.join(unzipFilePath, "package.json")
-            try:
-                with open(packageJsonPath, "r") as fptr:
-                    jsonData = json.load(fptr)
-            except:
-                raise Exception(os.listdir(newPath + "/underscore-master"))
-
-            repoUrl = jsonData["homepage"]
-            score = scoreUrl(repoUrl, jsonData)
-            resultsForRepo[p] = score
-            results.append(resultsForRepo)
-
-        
-        return results
+            return results
+        except Exception as e:
+            raise Exception("rate error", str(e), e.args)
         
 
     def download(self, packageList):

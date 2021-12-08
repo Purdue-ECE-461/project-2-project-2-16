@@ -211,7 +211,7 @@ def ratePackage(id):
             packageList = createPackageListDict()
             updateHist(id, "RATE", packageList)
 
-            return {"RampUp": res[0][1], "Correctness": res[0][2], "BusFactor": res[0][3], "ResponsiveMaintainer": res[0][4], "LicenseScore": res[0][5], "GoodPinningPractice": "Test"}, 200
+            return {"RampUp": res[0][1], "Correctness": res[0][2], "BusFactor": res[0][3], "ResponsiveMaintainer": res[0][4], "LicenseScore": res[0][5], "GoodPinningPractice": res[0][6]}, 200
         return {}, 400
     except Exception as e:
         return {"exception": str(e), "args": e.args}, 500

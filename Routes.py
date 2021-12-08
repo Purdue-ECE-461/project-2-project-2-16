@@ -329,8 +329,7 @@ def createPackage():
                 url = "https://api.github.com/repos/" + author + "/" + repo + "zipball"
 
                 headers = {
-                    'content-type': 'application/json',
-                    'Accept-Charset': 'UTF-8',
+                    'Accept': 'application/vnd.github.v3+json',
                     'Authorization': f'token {GITHUB_TOKEN}'}
             except Exception as e:
                 raise Exception("beginning ingest")

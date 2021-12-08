@@ -414,8 +414,8 @@ def listPackages():
         try:
             for dictReqs in data: # loop through all reqs
                 for package in packages:
-                    if package["Name"] == dictReqs["Name"]:
-                        if versionCheck(dictReqs["Version"], package["Version"]):
+                    if package[0]["Name"] == dictReqs["Name"]:
+                        if versionCheck(dictReqs["Version"], package[0]["Version"]):
                             output.append(package)
         except Exception as e:
             raise Exception("Data obtain error", str(e), "Type of package", type(packages[0]), "Type of dictReq", type(data[0]))

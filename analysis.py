@@ -238,8 +238,14 @@ def get_score(user_input, jsonData):
 def scoreUrl(url, jsonData):
     url = url.strip()
     results[url] = []
-    owner, repo, git_url = url_to_user(url)
-    json = GitRequest(owner, repo)
+    try:
+        owner, repo, git_url = url_to_user(url)
+    except Exception as e:
+        raise ("Url to user fail", str(e))
+    try:
+        json = GitRequest(owner, repo)
+    except Exception as e:
+        raise Exception("GitRequest fail", str(e))
     try:
         calculator(json, url, repo, git_url, jsonData)
     except:

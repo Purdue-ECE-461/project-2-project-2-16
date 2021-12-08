@@ -5,7 +5,6 @@ import zipfile
 import json
 from analysis import *
 from pathlib import Path
-from analysis import *
 
 class ApplicationService:
     def __init__(self):
@@ -82,7 +81,7 @@ class ApplicationService:
                 try:
                     score = scoreUrl(repoUrl, jsonData)
                 except Exception as e:
-                    raise Exception("score Url does not work", str(e), "repoURL: " + repoUrl)
+                    raise Exception("score Url does not work", str(e))
                 resultsForRepo[p] = score
                 results.append(resultsForRepo)
                 

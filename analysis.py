@@ -251,8 +251,8 @@ def scoreUrl(url, jsonData):
         raise Exception("GitRequest fail", str(e))
     try:
         calculator(json, url, repo, git_url, jsonData)
-    except:
-        raise Exception("calculator error")
+    except Exception as e:
+        raise Exception("calculator error", str(e))
 
     #print_score()
 

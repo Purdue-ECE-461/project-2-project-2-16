@@ -79,9 +79,9 @@ class ApplicationService:
                 repo = splitUrl[-1]
                 repoUrl = "https://github.com/" + author + "/" + repo
                 try:
-                    score = scoreUrl(repoUrl, jsonData)
+                    score = scoreUrl(repoUrl, author, repo, jsonData)
                 except Exception as e:
-                    raise Exception("score Url does not work", str(e))
+                    raise Exception("score Url does not work", str(e), repoUrl)
                 resultsForRepo[p] = score
                 results.append(resultsForRepo)
                 

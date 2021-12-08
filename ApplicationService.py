@@ -62,8 +62,8 @@ class ApplicationService:
                         splitDir = fileList[0].split("/")
                         zipRef.extractall(newPath)
                         unzipFilePath = os.path.join(newPath, splitDir[0])
-                except:
-                    raise Exception("Read in rate error")
+                except Exception as e:
+                    raise Exception("Read in rate error", str(e), str(p))
                 # error if package.json does not exist
                 
                 packageJsonPath = os.path.join(unzipFilePath, "package.json")

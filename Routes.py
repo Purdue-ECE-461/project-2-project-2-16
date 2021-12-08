@@ -339,8 +339,8 @@ def createPackage():
             except Exception as e:
                 raise("Request fail", str(e))
 
-            #if r.status_code != 200:
-            #   raise Exception("Could not get zip file of repo from GitHub.", "Code :" + str(r.status_code))
+            if r.status_code != 200:
+               raise Exception("Could not get zip file of repo from GitHub.", "Code :" + str(r.status_code))
 
             try:
                 with open(newFile, "wb") as fptr:

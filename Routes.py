@@ -423,7 +423,7 @@ def listPackages():
         except Exception as e:
             raise Exception("Data obtain error", str(e), "Type of package", str(type(packages)), "Type of dictReq", str(type(data[0])))
 
-        totalOutputPages = len(output) / 5
+        totalOutputPages = len(output) // 5
         try:
             if int(offset) > totalOutputPages:
                 offset = totalOutputPages

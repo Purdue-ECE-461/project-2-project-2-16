@@ -339,8 +339,11 @@ def createPackage():
             if r.status_code != 200:
                 raise Exception("Could not get zip file of repo from GitHub.")
 
-            with open(newFile, "wb") as fptr:
-                fptr.write(r.content)
+            try:
+                with open(newFile, "wb") as fptr:
+                    fptr.write(r.content)
+            except Exception as e:
+                raise Exception("write zip fail", str(e))
 
             if appService.ingest(str(newFile)):
                 histEntry = []

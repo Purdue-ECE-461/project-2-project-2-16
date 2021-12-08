@@ -162,22 +162,16 @@ def calculator(json_dict, url, repo, git_url, jsonData):
 def url_to_user(url):
     try:
         if 'github' in url:
-            try:
-                s = url.split("/")
-                return s[-2], s[-1], url  ##user, repo
-            except Exception as e:
-                raise Exception("Github url fail", str(e))
+            s = url.split("/")
+            return s[-2], s[-1], url  ##user, repo
         else:
-            try:
-                page = requests.get(url)
-                for line in page.text.splitlines():
-                    if "\"repository\":" in line:
-                        temp = line.split("\"")
-                        for i in temp:
-                            if "github" in i:
-                                return url_to_user(i)
-            except Exception as e:
-                raise Exception("Not github url fail", str(e))
+            page = requests.get(url)
+            for line in page.text.splitlines():
+                if "\"repository\":" in line:
+                    temp = line.split("\"")
+                    for i in temp:
+                        if "github" in i:
+                            return url_to_user(i)
     except Exception as e:
         raise Exception("Uncaught exception in url to user", str(e))
 

@@ -424,8 +424,11 @@ def listPackages():
             raise Exception("Data obtain error", str(e), "Type of package", str(type(packages)), "Type of dictReq", str(type(data[0])))
 
         totalOutputPages = len(output) / 5
-        if offset > totalOutputPages:
-            offset = totalOutputPages
+        try:
+            if offset > totalOutputPages:
+                offset = totalOutputPages
+        except:
+            raise Exception("compare error")
 
         startPackage = (totalOutputPages - 1) * 5
         outputPage = []

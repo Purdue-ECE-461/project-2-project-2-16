@@ -1,5 +1,6 @@
 from re import S
 from flask import Flask, request
+from flask.scaffold import F
 from flask_cors import CORS, cross_origin
 from ApplicationService import *
 from google.cloud import storage
@@ -383,6 +384,11 @@ def createPackage():
     except Exception as e:
         return {"Exception": str(e), "args": e.args}, 400
 
+def compareVersionRanges(versionDictTest, lowDict, highDict, isBounded):
+    if versionDictTest["major"] >= lowDict["major"] and versionDictTest["major"] < highDict["major"]:
+        return True
+    
+
 def splitVersionString(version):
     try:
         split = version.split('.')
@@ -403,8 +409,23 @@ def versionCheck(versionTestAgainst, versionToTest):
     if "-" in versionTestAgainst: # bounded version range\
         try:
             ranges = versionTestAgainst.split("-")
-            if str(versionToTest) >= str(ranges[0]) and str(versionToTest) <= str(ranges[1]):
+            testDict = splitVersionString(versionToTest)
+            lowDict = splitVersionString(ranges[0])
+            highDict = splitVersionString(ranges[1])
+            if testDict["major"] >= lowDict["major"] and testDict["major"] < highDict["major"]:
                 return True
+            elif testDict["major"] > highDict["major"] or testDict["major"] < lowDict["major"]:
+                return False
+            else:
+                if testDict["minor"] < highDict["minor"]:
+                    return True
+                elif testDict["minor"] > highDict["minor"]:
+                    return False
+                else:
+                    if testDict["patch"] <= highDict["patch"]:
+                        return True
+                    else:
+                        return False
         except Exception as e:
             raise Exception("Bounded range error.", str(e))
 
@@ -413,6 +434,8 @@ def versionCheck(versionTestAgainst, versionToTest):
             lowRange = versionTestAgainst[1:]
             lowDict = splitVersionString(lowRange)
             highDict = splitVersionString(lowRange)
+            testDict = splitVersionString(versionToTest)
+
             if lowDict["major"] > 0:
                 highDict["major"] = lowDict["major"] + 1
             elif lowDict["minor"] > 0:
@@ -420,11 +443,20 @@ def versionCheck(versionTestAgainst, versionToTest):
             else:
                 highDict["patch"] = lowDict["patch"] + 1
 
-            lowVersion = str(lowDict["major"]) + "." + str(lowDict["minor"]) + "." + str(lowDict["patch"])
-            highVersion = str(highDict["major"]) + "." + str(highDict["minor"]) + "." + str(highDict["patch"])
-
-            if str(versionToTest) >= str(lowVersion) and str(versionToTest) < str(highVersion):
+            if testDict["major"] >= lowDict["major"] and testDict["major"] < highDict["major"]:
                 return True
+            elif testDict["major"] > highDict["major"] or testDict["major"] < lowDict["major"]:
+                return False
+            else:
+                if testDict["minor"] < highDict["minor"]:
+                    return True
+                elif testDict["minor"] > highDict["minor"]:
+                    return False
+                else:
+                    if testDict["patch"] < highDict["patch"]:
+                        return True
+                    else:
+                        return False
         except Exception as e:
             raise Exception("Carat range error.", str(e))
 
@@ -434,16 +466,33 @@ def versionCheck(versionTestAgainst, versionToTest):
             lowRange = versionTestAgainst[1:]
             lowDict = splitVersionString(lowRange)
             highDict = splitVersionString(lowRange)
+            testDict = splitVersionString(versionToTest)
             if lowDict["minor"] > 0 or lowDict["patch"] > 0:
                 highDict["minor"] = lowDict["minor"] + 1
             else:
                 highDict["major"] = lowDict["major"] + 1
             
-            lowVersion = str(lowDict["major"]) + "." + str(lowDict["minor"]) + "." + str(lowDict["patch"])
-            highVersion = str(highDict["major"]) + "." + str(highDict["minor"]) + "." + str(highDict["patch"])
+            if lowDict["major"] > 0:
+                highDict["major"] = lowDict["major"] + 1
+            elif lowDict["minor"] > 0:
+                highDict["minor"] = lowDict["minor"] + 1
+            else:
+                highDict["patch"] = lowDict["patch"] + 1
 
-            if str(versionToTest) >= str(lowVersion) and str(versionToTest) < str(highVersion):
+            if testDict["major"] >= lowDict["major"] and testDict["major"] < highDict["major"]:
                 return True
+            elif testDict["major"] > highDict["major"] or testDict["major"] < lowDict["major"]:
+                return False
+            else:
+                if testDict["minor"] < highDict["minor"]:
+                    return True
+                elif testDict["minor"] > highDict["minor"]:
+                    return False
+                else:
+                    if testDict["patch"] < highDict["patch"]:
+                        return True
+                    else:
+                        return False
         except Exception as e:
             raise Exception("Tilde range error.", str(e))
 

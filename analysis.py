@@ -160,17 +160,24 @@ def calculator(json_dict, url, repo, git_url, jsonData):
 
 
 def url_to_user(url):
+
     if 'github' in url:
-        str = url.split("/")
-        return str[-2], str[-1], url  ##user, repo
+        try:
+            s = url.split("/")
+            return s[-2], s[-1], url  ##user, repo
+        except Exception as e:
+            raise Exception("Github url fail", str(e))
     else:
-        page = requests.get(url)
-        for line in page.text.splitlines():
-            if "\"repository\":" in line:
-                temp = line.split("\"")
-                for i in temp:
-                    if "github" in i:
-                        return url_to_user(i)
+        try:
+            page = requests.get(url)
+            for line in page.text.splitlines():
+                if "\"repository\":" in line:
+                    temp = line.split("\"")
+                    for i in temp:
+                        if "github" in i:
+                            return url_to_user(i)
+        except Exception as e:
+            raise Exception("Not github url fail", str(e))
 
 
         pass
@@ -241,7 +248,7 @@ def scoreUrl(url, jsonData):
     try:
         owner, repo, git_url = url_to_user(url)
     except Exception as e:
-        raise ("Url to user fail", str(e))
+        raise Exception("Url to user fail", str(e))
     try:
         json = GitRequest(owner, repo)
     except Exception as e:

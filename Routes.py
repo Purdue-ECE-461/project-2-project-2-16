@@ -418,7 +418,7 @@ def listPackages():
                         if versionCheck(dictReqs["Version"], package[0]["Version"]):
                             output.append(package)
         except Exception as e:
-            raise Exception("Data obtain error", str(e), "Type of package", type(packages), "Type of dictReq", type(data[0]))
+            raise Exception("Data obtain error", str(e), "Type of package", str(type(packages)), "Type of dictReq", str(type(data[0])))
 
         totalOutputPages = len(output) / 5
         if offset > totalOutputPages:

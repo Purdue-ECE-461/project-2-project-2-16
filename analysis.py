@@ -6,6 +6,7 @@ from requests.models import encode_multipart_formdata
 import json
 from datetime import datetime
 from dotenv import load_dotenv
+from dep_func import *
 
 
 load_dotenv()
@@ -116,7 +117,7 @@ def get_correctness(json, git_url, repo_name):
     return scoreValue
 
 def get_dep_score(jsonData):
-    return 0.5
+    return get_dep(jsonData)
 
 def calculator(json_dict, url, repo, git_url, jsonData):
     ramp_up_score = get_ramp_up(json_dict)

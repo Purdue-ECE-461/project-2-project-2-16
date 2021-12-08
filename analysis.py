@@ -57,7 +57,6 @@ def get_ramp_up(json):
 
 def get_bus_factor(json):
     watch = json["watchers"]
-    print("Watcers: " + str(watch))
     if watch > 1000:
         return 1
     
@@ -122,13 +121,13 @@ def get_dep_score(jsonData):
 def calculator(json_dict, url, repo, git_url, jsonData):
     try:
         ramp_up_score = get_ramp_up(json_dict)
-    except:
-        raise Exception("Ramp up error")
+    except Exception as e:
+        raise Exception("Ramp up error", str(e))
     # correctness_score = get_correctness(json) #this calls another program, and test the test case
     try:
         bus_factor = get_bus_factor(json_dict)
-    except:
-        raise Exception("bus factor error")
+    except Exception as e:
+        raise Exception("bus factor error", str(e))
 
     #time out the correctness function, because it uses ML regression, it might take too long
     try:
@@ -138,17 +137,17 @@ def calculator(json_dict, url, repo, git_url, jsonData):
 
     try:
         responsive_score = get_responsive_score(json_dict)
-    except:
-        raise Exception("response error")
+    except Exception as e:
+        raise Exception("response error", str(e))
     try:
         lic = get_license(json_dict)
-    except:
-        raise Exception("license error")
+    except Exception as e:
+        raise Exception("license error", str(e))
 
     try:
         dep_score = get_dep_score(jsonData)
-    except:
-        raise Exception("Dep error")
+    except Exception as e:
+        raise Exception("Dep error", str(e))
 
     # asdfasdf
     try:

@@ -116,22 +116,21 @@ class ApplicationService:
         # get history (of this registry) for each package in the package list
         pass
 
-    def ingest(self, package):
+    def ingest(self, packageList):
         # ingest a module into the registry
         # score repo, if net score > x, upload
         try:
-            results = self.rate(package)
-            id = package.split("/")[-1][:-4]
-            for i, p in enumerate(package):
+            results = self.rate(packageList)
+            filesToUpload = []
+            for i, p in enumerate(packageList):
+                id = p.split("/")[-1][:-4]
                 if results[i][id][0] > .5: # ingest score
-                    self.upload(p)
-                    print("Module ingested.")
-                    return True
-                else:
-                    print("Module was not trustworthy enough to be ingested.")
-                    print("Module scored: " + str(results[p][0]))
-                    print("Cutoff is: .5")
-                    return False
+                    filesToUpload.append(p)
+            
+            if not filesToUpload:
+                return False
+
+            self.upload(filesToUpload)
         except Exception as e:
             raise Exception("ingest fail", str(e))
         pass

@@ -351,7 +351,9 @@ def createPackage():
                 raise Exception("write zip fail", str(e))
 
             try:
-                if appService.ingest(str(newFile)):
+                files = []
+                files.append(str(newFile))
+                if appService.ingest(files):
                     histEntry = []
                     histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "INGEST"})
                     with open(newHistFile, "w") as fptr:

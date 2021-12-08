@@ -10,7 +10,7 @@ from dep_func import *
 
 
 load_dotenv()
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", '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')  # a back-up token just in case
+GITHUB_TOKEN = "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"  # a back-up token just in case
 
 results = dict()  # follow this format: {url: [net, ramp, corr, bus, respon, responsive, license], ...}
 
@@ -120,29 +120,37 @@ def get_dep_score(jsonData):
     return get_dep(jsonData)
 
 def calculator(json_dict, url, repo, git_url, jsonData):
-    ramp_up_score = get_ramp_up(json_dict)
-    print("finished ramp up score")
+    try:
+        ramp_up_score = get_ramp_up(json_dict)
+    except:
+        raise Exception("Ramp up error")
     # correctness_score = get_correctness(json) #this calls another program, and test the test case
-    bus_factor = get_bus_factor(json_dict)
-    print("finished bus factor score")
+    try:
+        bus_factor = get_bus_factor(json_dict)
+    except:
+        raise Exception("bus factor error")
 
     #time out the correctness function, because it uses ML regression, it might take too long
     signal.signal(signal.SIGALRM, handler)
     signal.alarm(120)
     try:
-        print("placeholder analyze correctness")
-        #correctness = .5
         correctness = get_correctness(json_dict, git_url, repo)
     except Exception as exc:
-        print(exc)
         correctness = 0.5
 
-    responsive_score = get_responsive_score(json_dict)
-    print("finished responsive score")
-    lic = get_license(json_dict)
-    print("got license")
+    try:
+        responsive_score = get_responsive_score(json_dict)
+    except:
+        raise Exception("response error")
+    try:
+        lic = get_license(json_dict)
+    except:
+        raise Exception("license error")
 
-    dep_score = get_dep_score(jsonData)
+    try:
+        dep_score = get_dep_score(jsonData)
+    except:
+        raise Exception("Dep error")
 
     # asdfasdf
     net = sum([weights["ramp-up"] * ramp_up_score, weights["correct"] * correctness, weights["bus-factor"] * bus_factor, weights["maintainer"] * responsive_score, weights["license"] * lic, weights["dependencies"] * dep_score])
@@ -231,9 +239,12 @@ def scoreUrl(url, jsonData):
     results[url] = []
     owner, repo, git_url = url_to_user(url)
     json = GitRequest(owner, repo)
-    calculator(json, url, repo, git_url, jsonData)
+    try:
+        calculator(json, url, repo, git_url, jsonData)
+    except:
+        raise Exception("calculator error")
 
-    print_score()
+    #print_score()
 
     return results[url]
 

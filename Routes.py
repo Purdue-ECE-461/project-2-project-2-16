@@ -411,11 +411,14 @@ def listPackages():
         data = request.get_json(force=True)
         # dataList = json.loads(data)
         # sort through and get all possible packages to print
-        for dictReqs in data: # loop through all reqs
-            for package in packages:
-                if package["Name"] == dictReqs["Name"]:
-                    if versionCheck(dictReqs["Version"], package["Version"]):
-                        output.append(package)
+        try:
+            for dictReqs in data: # loop through all reqs
+                for package in packages:
+                    if package["Name"] == dictReqs["Name"]:
+                        if versionCheck(dictReqs["Version"], package["Version"]):
+                            output.append(package)
+        except Exception as e:
+            raise Exception("Data obtain error", str(e))
 
         totalOutputPages = len(output) / 5
         if offset > totalOutputPages:
@@ -423,8 +426,11 @@ def listPackages():
 
         startPackage = (totalOutputPages - 1) * 5
         outputPage = []
-        for x in range(startPackage, len(output)): # paginate the output
-            outputPage.append(output[x])
+        try:
+            for x in range(startPackage, len(output)): # paginate the output
+                outputPage.append(output[x])
+        except Exception as e:
+            raise Exception("Paginate error", str(e))
 
         return json.dumps(outputPage, indent=4), 200
     except Exception as e:

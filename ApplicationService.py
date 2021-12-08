@@ -75,9 +75,12 @@ class ApplicationService:
                     raise Exception(os.listdir(newPath + "/underscore-master"))
 
                 repoUrl = jsonData["homepage"]
-                score = scoreUrl(repoUrl, jsonData)
-                resultsForRepo[p] = score
-                results.append(resultsForRepo)
+                try:
+                    score = scoreUrl(repoUrl, jsonData)
+                    resultsForRepo[p] = score
+                    results.append(resultsForRepo)
+                except:
+                    raise Exception("error in scoring")
 
             
             return results

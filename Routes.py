@@ -240,7 +240,7 @@ def getPackageByName(name):
         if not jsonOut:
             return {}, 400
         
-        return jsonOut, 200
+        return json.dumps(jsonOut), 200
         
     except Exception as e:
         return {'code': -1, 'message': "An unexpected error occurred", "exception": str(e)}, 500
@@ -339,7 +339,7 @@ def splitVersionString(version):
 def versionCheck(versionTestAgainst, versionToTest):
     if "-" in versionTestAgainst: # bounded version range
         ranges = versionTestAgainst.split("-")
-        if versionToTest >= ranges[0] and versionToTest <= ranges[1]:
+        if str(versionToTest) >= str(ranges[0]) and str(versionToTest) <= str(ranges[1]):
             return True
 
     elif "^" in versionTestAgainst: # carat version range
@@ -356,7 +356,7 @@ def versionCheck(versionTestAgainst, versionToTest):
         lowVersion = str(lowDict["major"]) + "." + str(lowDict["minor"]) + "." + str(lowDict["patch"])
         highVersion = str(highDict["major"]) + "." + str(highDict["minor"]) + "." + str(highDict["patch"])
 
-        if versionToTest >= lowVersion and versionToTest < highVersion:
+        if str(versionToTest) >= str(lowVersion) and str(versionToTest) < str(highVersion):
             return True
 
     elif "~" in versionTestAgainst: # tilde version range
@@ -371,11 +371,11 @@ def versionCheck(versionTestAgainst, versionToTest):
         lowVersion = str(lowDict["major"]) + "." + str(lowDict["minor"]) + "." + str(lowDict["patch"])
         highVersion = str(highDict["major"]) + "." + str(highDict["minor"]) + "." + str(highDict["patch"])
 
-        if versionToTest >= lowVersion and versionToTest < highVersion:
+        if str(versionToTest) >= str(lowVersion) and str(versionToTest) < str(highVersion):
             return True
 
     else: # exact version
-        if versionToTest == versionTestAgainst:
+        if str(versionToTest) == str(versionTestAgainst):
             return True
 
     return False

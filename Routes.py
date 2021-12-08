@@ -327,6 +327,8 @@ def createPackage():
                 splitStr = data["data"]["URL"].split("/")
                 author, repo = splitStr[-2], splitStr[-1]
                 url = "https://api.github.com/repos/" + author + "/" + repo + "/zipball"
+                load_dotenv()
+                GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
                 headers = {
                     'Accept': 'application/vnd.github.v3+json',

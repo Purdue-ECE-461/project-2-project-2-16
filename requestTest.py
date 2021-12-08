@@ -14,7 +14,15 @@ def main():
 
     r = requests.get(url, headers=headers, allow_redirects=True)
 
-    print(r.content[:-10])
+    newPath = os.path.join(os.getcwd(), "unzip")
+
+    if not os.path.exists(newPath):
+            os.makedirs(newPath)
+
+    with open(newPath + "/test.zip", "wb") as fptr:
+        fptr.write(r.content)
+
+    print("Zipfile created")
 
 if __name__ == "__main__":
     main()

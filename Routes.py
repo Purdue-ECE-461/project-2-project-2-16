@@ -240,7 +240,7 @@ def getPackageByName(name):
         if not jsonOut:
             return {}, 400
         
-        return json.dumps(jsonOut), 200
+        return json.dumps(jsonOut, indent=4), 200
         
     except Exception as e:
         return {'code': -1, 'message': "An unexpected error occurred", "exception": str(e)}, 500
@@ -333,50 +333,66 @@ def splitVersionString(version):
         return {"major": int(split[0]), "minor": 0, "patch": 0}
     elif len(split) == 2:
         return {"major": int(split[0]), "minor": int(split[1]), "patch": 0}
-    else:
+    elif len(split) == 3:
         return {"major": int(split[0]), "minor": int(split[1]), "patch": int(split[2])}
+    else:
+        raise Exception("Invalid version input. Version input was " + version)
 
 def versionCheck(versionTestAgainst, versionToTest):
-    if "-" in versionTestAgainst: # bounded version range
-        ranges = versionTestAgainst.split("-")
-        if str(versionToTest) >= str(ranges[0]) and str(versionToTest) <= str(ranges[1]):
-            return True
+    
+    if "-" in versionTestAgainst: # bounded version range\
+        try:
+            ranges = versionTestAgainst.split("-")
+            if str(versionToTest) >= str(ranges[0]) and str(versionToTest) <= str(ranges[1]):
+                return True
+        except Exception as e:
+            raise Exception("Bounded range error.", str(e))
 
     elif "^" in versionTestAgainst: # carat version range
-        lowRange = versionTestAgainst[1:]
-        lowDict = splitVersionString(lowRange)
-        highDict = splitVersionString(lowRange)
-        if lowDict["major"] > 0:
-            highDict["major"] = lowDict["major"] + 1
-        elif lowDict["minor"] > 0:
-            highDict["minor"] = lowDict["minor"] + 1
-        else:
-            highDict["patch"] = lowDict["patch"] + 1
+        try:
+            lowRange = versionTestAgainst[1:]
+            lowDict = splitVersionString(lowRange)
+            highDict = splitVersionString(lowRange)
+            if lowDict["major"] > 0:
+                highDict["major"] = lowDict["major"] + 1
+            elif lowDict["minor"] > 0:
+                highDict["minor"] = lowDict["minor"] + 1
+            else:
+                highDict["patch"] = lowDict["patch"] + 1
 
-        lowVersion = str(lowDict["major"]) + "." + str(lowDict["minor"]) + "." + str(lowDict["patch"])
-        highVersion = str(highDict["major"]) + "." + str(highDict["minor"]) + "." + str(highDict["patch"])
+            lowVersion = str(lowDict["major"]) + "." + str(lowDict["minor"]) + "." + str(lowDict["patch"])
+            highVersion = str(highDict["major"]) + "." + str(highDict["minor"]) + "." + str(highDict["patch"])
 
-        if str(versionToTest) >= str(lowVersion) and str(versionToTest) < str(highVersion):
-            return True
+            if str(versionToTest) >= str(lowVersion) and str(versionToTest) < str(highVersion):
+                return True
+        except Exception as e:
+            raise Exception("Carat range error.", str(e))
+
 
     elif "~" in versionTestAgainst: # tilde version range
-        lowRange = versionTestAgainst[1:]
-        lowDict = splitVersionString(lowRange)
-        highDict = splitVersionString(lowRange)
-        if lowDict["minor"] > 0 or lowDict["patch"] > 0:
-            highDict["minor"] = lowDict["minor"] + 1
-        else:
-            highDict["major"] = lowDict["major"] + 1
-        
-        lowVersion = str(lowDict["major"]) + "." + str(lowDict["minor"]) + "." + str(lowDict["patch"])
-        highVersion = str(highDict["major"]) + "." + str(highDict["minor"]) + "." + str(highDict["patch"])
+        try:
+            lowRange = versionTestAgainst[1:]
+            lowDict = splitVersionString(lowRange)
+            highDict = splitVersionString(lowRange)
+            if lowDict["minor"] > 0 or lowDict["patch"] > 0:
+                highDict["minor"] = lowDict["minor"] + 1
+            else:
+                highDict["major"] = lowDict["major"] + 1
+            
+            lowVersion = str(lowDict["major"]) + "." + str(lowDict["minor"]) + "." + str(lowDict["patch"])
+            highVersion = str(highDict["major"]) + "." + str(highDict["minor"]) + "." + str(highDict["patch"])
 
-        if str(versionToTest) >= str(lowVersion) and str(versionToTest) < str(highVersion):
-            return True
+            if str(versionToTest) >= str(lowVersion) and str(versionToTest) < str(highVersion):
+                return True
+        except Exception as e:
+            raise Exception("Tilde range error.", str(e))
 
     else: # exact version
-        if str(versionToTest) == str(versionTestAgainst):
-            return True
+        try:
+            if str(versionToTest) == str(versionTestAgainst):
+                return True
+        except Exception as e:
+            raise Exception("Exact range error.", str(e))
 
     return False
 
@@ -410,7 +426,7 @@ def listPackages():
         for x in range(startPackage, len(output)): # paginate the output
             outputPage.append(output[x])
 
-        return outputPage, 200
+        return json.dumps(outputPage, indent=4), 200
     except Exception as e:
         return {"code": -1, "message": "An unexpected error occurred", "exception": str(e), "args": e.args}, 500
 

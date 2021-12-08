@@ -10,7 +10,7 @@ from dep_func import *
 
 
 load_dotenv()
-GITHUB_TOKEN = "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"  # a back-up token just in case
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # a back-up token just in case
 
 results = dict()  # follow this format: {url: [net, ramp, corr, bus, respon, responsive, license], ...}
 

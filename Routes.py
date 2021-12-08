@@ -327,16 +327,19 @@ def createPackage():
         return {"Exception": str(e), "args": e.args}, 400
 
 def splitVersionString(version):
-    split = version.split('.')
+    try:
+        split = version.split('.')
 
-    if len(split) == 1:
-        return {"major": int(split[0]), "minor": 0, "patch": 0}
-    elif len(split) == 2:
-        return {"major": int(split[0]), "minor": int(split[1]), "patch": 0}
-    elif len(split) == 3:
-        return {"major": int(split[0]), "minor": int(split[1]), "patch": int(split[2])}
-    else:
-        raise Exception("Invalid version input. Version input was " + version)
+        if len(split) == 1:
+            return {"major": int(split[0]), "minor": 0, "patch": 0}
+        elif len(split) == 2:
+            return {"major": int(split[0]), "minor": int(split[1]), "patch": 0}
+        elif len(split) == 3:
+            return {"major": int(split[0]), "minor": int(split[1]), "patch": int(split[2])}
+        else:
+            raise Exception("Invalid version input. Version input was " + version)
+    except Exception as e:
+        raise Exception("splitVersion error", str(e))
 
 def versionCheck(versionTestAgainst, versionToTest):
     

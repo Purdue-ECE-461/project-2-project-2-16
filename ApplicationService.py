@@ -77,6 +77,8 @@ class ApplicationService:
                 splitUrl = repoUrl.split("/")
                 author = splitUrl[-2]
                 repo = splitUrl[-1]
+                if ".git" in repo:
+                    repo = repo[:-4]
                 repoUrl = "https://github.com/" + author + "/" + repo
                 try:
                     score = scoreUrl(repoUrl, author, repo, jsonData)

@@ -1,8 +1,12 @@
+import datetime
+import json
+import os
 from re import S
+from dotenv import load_dotenv
 from flask import Flask, request
 from flask.scaffold import F
 from flask_cors import CORS, cross_origin
-from ApplicationService import *
+from application_service import ApplicationService 
 from google.cloud import storage
 import zipfile
 import base64
@@ -12,135 +16,135 @@ import requests
 app = Flask(__name__)
 CORS(app)
 
-actionHistory = dict() # maps String id to [(date, action)],...
-
-appService = ApplicationService()
-
-bucketName = "ece-461-project-2-registry"
+app_service = ApplicationService()
+BUCKET_NAME = "ece-461-project-2-registry"
 
 # IDs are always unique strings, and different versions of the same package will have unique IDs
 # Names can be duplicates, IDs cannot
 # If a method isn't specified, it is a GET method
-def createPackageListDict():
+def create_package_list_dict():
+    '''Creates a package dict with all files currently in registry in GCS'''
     try:
-        storageClient = storage.Client()
-        bucket = storageClient.bucket(bucketName)
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(BUCKET_NAME)
         blobs = bucket.list_blobs()
-        packageList = dict()
+        package_list = dict()
         for blob in blobs:
             name = str(blob.name)
-            fileType = name [-4:]
-            id = name[:-4]
-            matchVersion = re.search("\d+\.\d+\.\d+", id)
-            version = matchVersion.group()
-            pkgName = id[:-(len(matchVersion.group()))]
-            if fileType == ".zip":
-                packageList[id] = {"Name": pkgName, "Version": version, "ID": id}
+            file_type = name [-4:]
+            package_id = name[:-4]
+            match_version = re.search(r"\d+\.\d+\.\d+", package_id)
+            version = match_version.group()
+            package_name = package_id[:-(len(match_version.group()))]
+            if file_type == ".zip":
+                package_list[package_id] = {"Name": package_name, "Version": version,
+                "ID": package_id}
 
-        return packageList
-    except Exception as e:
-        raise Exception("error in create package list dict")
+        return package_list
+    except Exception as exc:
+        raise Exception("error in create package list dict") from exc
 
-    
-def checkIfFileExists(id):
+def check_if_file_exists(package_id):
+    '''Checks if the file currently exists in GCS'''
     try:
-        storageClient = storage.Client()
-        bucket = storageClient.bucket(bucketName)
-        fileToCheck = bucket.blob(id + ".zip")
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(BUCKET_NAME)
+        file_check = bucket.blob(package_id + ".zip")
 
-        return fileToCheck.exists()
-    except:
-        raise Exception("File check failed")
+        return file_check.exists()
+    except Exception as exc:
+        raise Exception("File check failed") from exc
 
-def updateHist(id, typeUpdate, packageList):
+def update_hist(package_id, type_update, package_list):
     try:
-        storageClient = storage.Client()
-        bucket = storageClient.bucket(bucketName)
-        downloadPath = os.path.join(os.getcwd(), "Downloads")
-        if not os.path.exists(downloadPath):
-                os.makedirs(downloadPath)
-        
-        histFile = os.path.join(downloadPath, id + "history.json")
-        fileToDownload = bucket.blob(id + "history.json")
-        fileToDownload.download_to_filename(str(histFile))
-        try:
-            with open(histFile, "r") as fptr:
-                listJson = json.load(fptr)
-        except:
-            raise Exception("could not load json")
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(BUCKET_NAME)
+        download_path = os.path.join(os.getcwd(), "Downloads")
+        if not os.path.exists(download_path):
+            os.makedirs(download_path)
 
-        listJson.append({"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": packageList[id], "Action": typeUpdate})
+        hist_file = os.path.join(download_path, package_id + "history.json")
+        file_download = bucket.blob(package_id + "history.json")
+        file_download.download_to_filename(str(hist_file))
+        try:
+            with open(hist_file, "r", encoding="utf-8") as fptr:
+                list_json = json.load(fptr)
+        except Exception as exc:
+            raise Exception("could not load json") from exc
+
+        list_json.append({"User": {"name": "Default User", "isAdmin": True},
+        "Date": str(datetime.datetime.now()), "PackageMetadata": package_list[id], 
+        "Action": type_update})
 
         try:
-            with open(histFile, "w") as fptr:
-                json.dump(listJson, fptr, indent=4)
-        except:
-            raise Exception("could not write json")
+            with open(hist_file, "w", encoding="utf-8") as fptr:
+                json.dump(list_json, fptr, indent=4)
+        except Exception as exc:
+            raise Exception("could not write json") from exc
 
         files = []
-        files.append(histFile)
-        appService.upload(files)
-    except Exception as e:
-        raise Exception("update Hist failed", str(e))
+        files.append(hist_file)
+        app_service.upload(files)
+    except Exception as exc:
+        raise Exception("update Hist failed") from exc
 
 @app.route("/package/<id>")
-def getPackage(id):
+def getPackage(package_id):
     # Gets the package from google cloud storage and returns the info about it in metadata
     # Returns the actual compressed file in the content field as an encrypted base 64 string
     try:
-        packageList = createPackageListDict()
-        if (checkIfFileExists(id)):
-            storageClient = storage.Client()
-            bucket = storageClient.bucket(bucketName)
-            fileToCheck = bucket.blob(id + ".zip")
+        package_list = create_package_list_dict()
+        if (check_if_file_exists(package_id)):
+            storage_client = storage.Client()
+            bucket = storage_client.bucket(BUCKET_NAME)
+            file_check = bucket.blob(package_id + ".zip")
 
-            
-            downloadPath = os.path.join(os.getcwd(), "Downloads")
-            downloadFile = os.path.join(downloadPath, id + ".zip")
+            download_path = os.path.join(os.getcwd(), "Downloads")
+            download_file = os.path.join(download_path, package_id + ".zip")
 
-            if not os.path.exists(downloadPath):
-                os.makedirs(downloadPath)
-                
-            fileToDownload = fileToCheck # name of storage object goes here
-            fileToDownload.download_to_filename(str(downloadFile)) # path to local file
+            if not os.path.exists(download_path):
+                os.makedirs(download_path)
 
-            with open(downloadFile, "rb") as fptr:
+            file_download = file_check # name of storage object goes here
+            file_download.download_to_filename(str(download_file)) # path to local file
+
+            with open(download_file, "rb") as fptr:
                 data = fptr.read()
-                encodedStr = base64.b64encode(data)
+                encoded_str = base64.b64encode(data)
 
-            unzipPath = os.path.join(downloadPath, id)
+            unzip_path = os.path.join(download_path, package_id)
 
-            with zipfile.ZipFile(downloadFile, "r") as zipRef:
-                zipRef.extractall(unzipPath)
+            with zipfile.ZipFile(download_file, "r") as zip_ref:
+                zip_ref.extractall(unzip_path)
 
             try:
-                jsonFile = os.path.join(unzipPath, "package.json")
-                with open(jsonFile, "r") as fptr:
-                    jsonData = json.load(fptr.read())    
-                repoUrl = jsonData["homepage"]
-            except:
-                repoUrl = "No URL Found."
+                json_file = os.path.join(unzip_path, "package.json")
+                with open(json_file, "r", encoding="utf-8") as fptr:
+                    json_data = json.load(fptr.read())
+                repo_url = json_data["homepage"]
+            except Exception:
+                repo_url = "No URL Found."
 
-            updateHist(id, "GET", packageList)
+            update_hist(package_id, "GET", package_list)
         
-            return {'metadata': {"Name": packageList[id]["Name"], "Version": packageList[id]["Version"], "ID": id}, "data": {"Content": encodedStr.decode('ascii'), "URL": repoUrl, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
+            return {'metadata': {"Name": package_list[package_id]["Name"], "Version": package_list[package_id]["Version"], "ID": package_id}, "data": {"Content": encoded_str.decode('ascii'), "URL": repo_url, "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"}}, 200
         else:
-            return {'code': -1, 'message': "An error occurred while retrieving package, package does not exist", "packageList": packageList}, 500
-    except Exception as e:
-        return {'code': -1, 'message': "An exception occurred while retrieving package", 'exception': str(e), 'args': e.args}, 500
+            return {'code': -1, 'message': "An error occurred while retrieving package, package does not exist", "package_list": package_list}, 500
+    except Exception as exc:
+        return {'code': -1, 'message': "An exception occurred while retrieving package", 'exception': str(exc), 'args': exc.args}, 500
 
 @app.route("/package/<id>", methods=['PUT'])
 def putPackage(id):
     # Updates a currently existing package with the data from the request
     try:
         res = request.get_json(force=True)
-        packageList = createPackageListDict()
-        if checkIfFileExists(id):
-            if (res["metadata"]["Name"] != packageList[id]["Name"] or res["metadata"]["Version"] != packageList[id]["Version"] or res["metadata"]["ID"] != packageList[id]["ID"]):
-                return {"Warning": "metadata of package did not match", "packageList": packageList}, 400
+        package_list = create_package_list_dict()
+        if check_if_file_exists(id):
+            if (res["metadata"]["Name"] != package_list[id]["Name"] or res["metadata"]["Version"] != package_list[id]["Version"] or res["metadata"]["ID"] != package_list[id]["ID"]):
+                return {"Warning": "metadata of package did not match", "package_list": package_list}, 400
            
-            storageClient = storage.Client()
-            bucket = storageClient.bucket(bucketName)
+            storage_client = storage.Client()
+            bucket = storage_client.bucket(BUCKET_NAME)
             blob = bucket.blob(id + ".zip")
             blob.delete()
 
@@ -152,8 +156,8 @@ def putPackage(id):
 
             newFile = os.path.join(newPath, id + ".zip")
 
-            zipEncodedStr = res["data"]["Content"]
-            newZipStr = zipEncodedStr + ((4 - (len(zipEncodedStr) % 4)) * "=")
+            zipencoded_str = res["data"]["Content"]
+            newZipStr = zipencoded_str + ((4 - (len(zipencoded_str) % 4)) * "=")
             zipDecoded = base64.b64decode(newZipStr)
 
             with open(newFile, 'wb') as fptr:
@@ -161,8 +165,8 @@ def putPackage(id):
    
             files = []
             files.append(str(newFile))
-            appService.upload(files)
-            updateHist(id, "UPDATE", packageList)
+            app_service.upload(files)
+            update_hist(id, "UPDATE", package_list)
 
             return {}, 200
 
@@ -171,8 +175,8 @@ def putPackage(id):
         return {"exception": str(e), "args": e.args}, 400
 
 def delPackage(id):
-    storageClient = storage.Client()
-    bucket = storageClient.bucket(bucketName)
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(BUCKET_NAME)
     blob = bucket.blob(id + ".zip")
     blob.delete()
     blob = bucket.blob(id + "history.json")
@@ -182,10 +186,10 @@ def delPackage(id):
 @app.route("/package/<id>", methods=['DELETE'])
 def delPackageVers(id):
     try:
-        packageList = createPackageListDict()
-        if (checkIfFileExists(id)):
+        package_list = create_package_list_dict()
+        if (check_if_file_exists(id)):
             delPackage(id)
-            return {"Trace": "popped key " + id + " from packageList", "packageList": packageList}, 200
+            return {"Trace": "popped key " + id + " from package_list", "package_list": package_list}, 200
         return {}, 400
     except Exception as e:
         return {"exception": str(e), "args": e.args}, 500
@@ -194,27 +198,27 @@ def delPackageVers(id):
 @app.route("/package/<id>/rate", methods=["GET"])
 def ratePackage(id):
     try:
-        if (checkIfFileExists(id)):
-            downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
+        if (check_if_file_exists(id)):
+            download_path = str(os.path.join(os.getcwd(), "Downloads"))
 
-            if not os.path.exists(downloadPath):
-                os.makedirs(downloadPath)
+            if not os.path.exists(download_path):
+                os.makedirs(download_path)
 
-            storageClient = storage.Client()
-            bucket = storageClient.bucket(bucketName)
-            fileToDownload = bucket.blob(id + ".zip")
-            fileDownloadPath = str(os.path.join(downloadPath, id + ".zip"))
-            fileToDownload.download_to_filename(fileDownloadPath)
+            storage_client = storage.Client()
+            bucket = storage_client.bucket(BUCKET_NAME)
+            file_download = bucket.blob(id + ".zip")
+            filedownload_path = str(os.path.join(download_path, id + ".zip"))
+            file_download.download_to_filename(filedownload_path)
             
             files = []
-            files.append(fileDownloadPath)
+            files.append(filedownload_path)
             try:
-                res = appService.rate(files)
+                res = app_service.rate(files)
             except Exception as e:
                 raise Exception("rate fail", str(e))
 
-            packageList = createPackageListDict()
-            updateHist(id, "RATE", packageList)
+            package_list = create_package_list_dict()
+            update_hist(id, "RATE", package_list)
             try:
                 scoreDict = {"RampUp": res[0][id][1], "Correctness": res[0][id][2], "BusFactor": res[0][id][3], "ResponsiveMaintainer": res[0][id][4], "LicenseScore": res[0][id][5], "GoodPinningPractice": res[0][id][6]}
             except Exception as e:
@@ -228,21 +232,21 @@ def ratePackage(id):
 def getPackageByName(name):
     try:
         jsonOut = []
-        packageList = createPackageListDict()
-        for id, info in packageList.items():
+        package_list = create_package_list_dict()
+        for id, info in package_list.items():
             if (info["Name"] == name):
-                downloadPath = os.path.join(os.getcwd(), "Downloads")
-                downloadFile = os.path.join(downloadPath, id + "history.json")
+                download_path = os.path.join(os.getcwd(), "Downloads")
+                download_file = os.path.join(download_path, id + "history.json")
 
-                if not os.path.exists(downloadPath):
-                    os.makedirs(downloadPath)
+                if not os.path.exists(download_path):
+                    os.makedirs(download_path)
                     
-                storageClient = storage.Client()
-                bucket = storageClient.bucket(bucketName)
-                fileToDownload = bucket.blob(id + "history.json")
-                fileToDownload.download_to_filename(str(downloadFile)) # path to local file
+                storage_client = storage.Client()
+                bucket = storage_client.bucket(BUCKET_NAME)
+                file_download = bucket.blob(id + "history.json")
+                file_download.download_to_filename(str(download_file)) # path to local file
 
-                with open(downloadFile, "r") as fptr:
+                with open(download_file, "r") as fptr:
                     jsonOut.append(json.load(fptr))
             
         if not jsonOut:
@@ -257,8 +261,8 @@ def getPackageByName(name):
 def delAllPackageVers(name):
     try:
         deleted = False
-        packageList = createPackageListDict()
-        for id, info in packageList.items():
+        package_list = create_package_list_dict()
+        for id, info in package_list.items():
             if (info["Name"] == name):
                 delPackage(id)
                 deleted = True
@@ -273,7 +277,7 @@ def delAllPackageVers(name):
 @app.route("/package", methods=['POST'])
 @cross_origin()
 def createPackage():
-    packageList = createPackageListDict()
+    package_list = create_package_list_dict()
     try:
         data = request.get_json(force=True)
 
@@ -291,11 +295,11 @@ def createPackage():
         if not os.path.exists(histPath):
             os.makedirs(histPath)
 
-        if checkIfFileExists(id):
-            return {"package": "exists", "packageList": packageList}, 403
+        if check_if_file_exists(id):
+            return {"package": "exists", "package_list": package_list}, 403
 
         newFile = os.path.join(newPath, data["metadata"]["Name"] + data["metadata"]["Version"] + ".zip")
-        newHistFile = os.path.join(histPath, data["metadata"]["Name"] + data["metadata"]["Version"] + "history.json")
+        newhist_file = os.path.join(histPath, data["metadata"]["Name"] + data["metadata"]["Version"] + "history.json")
     
         if "Content" in data["data"]: # Creation
             encString = data["data"]["Content"]
@@ -310,16 +314,16 @@ def createPackage():
             histEntry = []
             histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "CREATE"})
             
-            with open(newHistFile, "w") as fptr:
+            with open(newhist_file, "w") as fptr:
                 try:
                     json.dump(histEntry, fptr, indent=4)
                 except:
                     raise Exception("Json string fail")
 
-            files.append(str(newHistFile))
+            files.append(str(newhist_file))
 
             try:
-                appService.upload(files)
+                app_service.upload(files)
             except:
                 raise Exception("Upload failed")
 
@@ -355,23 +359,23 @@ def createPackage():
                 files = []
                 files.append(str(newFile))
                 try:
-                    res = appService.rate(files)
+                    res = app_service.rate(files)
                 except Exception as e:
                     raise Exception("rate fail in ingest", str(e))
 
                 if res[0][id][0] > .5:
                     histEntry = []
                     histEntry.append({"User": {"name": "Default User", "isAdmin": True}, "Date": str(datetime.now()), "PackageMetadata": {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id}, "Action": "INGEST"})
-                    with open(newHistFile, "w") as fptr:
+                    with open(newhist_file, "w") as fptr:
                         try:
                             json.dump(histEntry, fptr, indent=4)
                         except:
                             raise Exception("Json string fail")
 
-                    files.append(str(newHistFile))
+                    files.append(str(newhist_file))
 
                     try:
-                        appService.upload(files)
+                        app_service.upload(files)
                     except:
                         raise Exception("Upload failed")
                 else:
@@ -379,7 +383,7 @@ def createPackage():
             except Exception as e:
                 raise Exception("Ingest in Routes", str(e), "request=", str(r))
 
-        return {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id, "packageList": packageList}, 201
+        return {"Name": data["metadata"]["Name"], "Version": data["metadata"]["Version"], "ID": id, "package_list": package_list}, 201
         
     except Exception as e:
         return {"Exception": str(e), "args": e.args}, 400
@@ -508,8 +512,8 @@ def versionCheck(versionTestAgainst, versionToTest):
 @app.route("/packages", methods=['POST'])
 def listPackages():
     try:
-        packageList = createPackageListDict()
-        packages = packageList.items()
+        package_list = create_package_list_dict()
+        packages = package_list.items()
         try:
             offset = request.args.get('offset')
         except:
@@ -551,14 +555,13 @@ def listPackages():
 @app.route("/reset", methods=['DELETE'])
 def reset():
     try:
-        storageClient = storage.Client()
-        bucket = storageClient.bucket(bucketName)
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(BUCKET_NAME)
         blobs = bucket.list_blobs()
         for blob in blobs:
             blob.delete()
         
-        actionHistory.clear()
-        appService.reset()
+        app_service.reset()
 
         return {}, 200
     except Exception as e:

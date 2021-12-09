@@ -13,7 +13,7 @@ from dep_func import *
 
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # a back-up token just in case
-results = dict()  # follow this format: {url: [net, ramp, corr, bus, respon, responsive, license], ...}
+results = {}  # {url: [net, ramp, corr, bus, respon, responsive, license], ...}
 
 headers = {
     'content-type': 'application/json',
@@ -33,32 +33,32 @@ params = {
     "state": "open",
 }
 
-def handler(signum, frame): #adopted from https://stackoverflow.com/questions/492519/timeout-on-a-function-call
+def handler(signum, frame):
     '''
     Raises time out exception
+    adopted from https://stackoverflow.com/questions/492519/timeout-on-a-function-call
     '''
     raise Exception("time out")
 
 
-def GitRequest(owner, repo):
+def git_request(owner, repo):
     '''
     Returns json of GitHub repo
     '''
     address = f"https://api.github.com/repos/{owner}/{repo}"
-    r = requests.get(address, headers=headers, params=params)
-    return r.json()
+    req = requests.get(address, headers=headers, params=params)
+    return req.json()
 
 def get_ramp_up(json):
     '''
     Calculates Ramp_Up Score
     '''
     try:
-        hasWiki = json['has_wiki']
-        if hasWiki is False:
+        has_wiki = json['has_wiki']
+        if has_wiki is False:
             return 0
-        else:
-            return 1
-    except:
+        return 1
+    except Exception as e:
         return 0
 
 def get_bus_factor(json):
@@ -68,9 +68,9 @@ def get_bus_factor(json):
     try:
         watch = json["watchers_count"]
         if watch > 1000:
-            return 1     
+            return 1
         return watch / 1000
-    except:
+    except Exception as e:
         raise Exception("Json: ", json)
     return .5
 
@@ -103,7 +103,7 @@ def get_correctness(json, git_url, repo_name):
     '''
     Calculates Correctness Score
     '''
-    stars = json["stargazers_count"]    
+    stars = json["stargazers_count"]
     scoreValue = 0
     if stars > 1000:
         scoreValue = .5
@@ -162,7 +162,12 @@ def calculator(json_dict, url, repo, git_url, jsonData):
         raise Exception("Dep error", str(e))
 
     try:
-        net = sum([weights["ramp-up"] * ramp_up_score, weights["correct"] * correctness, weights["bus-factor"] * bus_factor, weights["maintainer"] * responsive_score, weights["license"] * lic, weights["dependencies"] * dep_score])
+        net = sum([weights["ramp-up"] * ramp_up_score, \
+            weights["correct"] * correctness, \
+            weights["bus-factor"] * bus_factor, \
+            weights["maintainer"] * responsive_score, \
+            weights["license"] * lic, \
+            weights["dependencies"] * dep_score])
         results[url] = [net, ramp_up_score, correctness, bus_factor, responsive_score, lic, dep_score]
     except Exception as e:
         raise Exception("Net score error", str(e))
@@ -199,7 +204,8 @@ def print_score():
     '''
     sorted_list = set_print_ordered()
     for x in sorted_list:
-        print(x[0] + " %.2f %.2f %.2f %.2f %.2f %.2f" % (x[1][0], x[1][1], x[1][2], x[1][3], x[1][4], x[1][5]))
+        print(x[0] + " %.2f %.2f %.2f %.2f %.2f %.2f" \
+            % (x[1][0], x[1][1], x[1][2], x[1][3], x[1][4], x[1][5]))
 
 def get_score(user_input, jsonData):
     '''
@@ -212,7 +218,7 @@ def get_score(user_input, jsonData):
         url = url.strip()
         results[url] = []
         owner, repo, git_url= url_to_user(url)
-        json = GitRequest(owner, repo)
+        json = git_request(owner, repo)
         print(json)
         print("completed json request for repo: " + repo)
         print("calculated score for repo: " + repo)
@@ -224,9 +230,9 @@ def scoreUrl(url, owner, repo, jsonData):
     '''
     results[url] = []
     try:
-        json = GitRequest(owner, repo)
+        json = git_request(owner, repo)
     except Exception as e:
-        raise Exception("GitRequest fail", str(e))
+        raise Exception("git_request() fail", str(e))
     try:
         calculator(json, url, repo, url, jsonData)
     except Exception as e:

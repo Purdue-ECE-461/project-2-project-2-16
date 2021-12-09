@@ -1,71 +1,74 @@
-from google.cloud import storage
-from dotenv import load_dotenv
+'''Application service provides helper functionality for the flask API in Routes.py'''
 import os
 import zipfile
 import json
-from analysis import *
-from pathlib import Path
+from analysis import scoreUrl
+from google.cloud import storage
 
 class ApplicationService:
+    '''Application service provides helper functionality for the flask API in Routes.py'''
     def __init__(self):
-        self.registry = None
-        self.logger = None
-        self.scorer = None
-        self.authService = None
-        self.bucketName = "ece-461-project-2-registry"       
+        self.bucket_name = "ece-461-project-2-registry"
 
-    def upload(self, packageList, debloatBool = False):
+    def upload(self, packageList, debloat_bool = False):
+        '''Uploads a file to our registry in GCS'''
+        if debloat_bool:
+            print("Debloat")
         # take a list of packages and upload them to the registry with an optional debloat param
         # upload files one at a time or in a zip? *I'm thinking a zip*
-        #storageClient = storage.Client.from_service_account_json("./google-cloud-creds.json")
-        storageClient = storage.Client()
-        #bucketName = "ece-461-project-2-registry"
-        bucket = storageClient.bucket(self.bucketName)
-        for x in packageList:
-            splitString = x.split("/")
-            fileToUpload = bucket.blob(splitString[-1]) # name of storage object goes here
-            fileToUpload.upload_from_filename(x) # path to local file      
+        #storage_client = storage.Client.from_service_account_json("./google-cloud-creds.json")
+        storage_client = storage.Client()
+        #bucket_name = "ece-461-project-2-registry"
+        bucket = storage_client.bucket(self.bucket_name)
+        for package in packageList:
+            split_string = package.split("/")
+            file_upload = bucket.blob(split_string[-1]) # name of storage object goes here
+            file_upload.upload_from_filename(package) # path to local file
 
-    def update(self, packageList, debloatBool = False):
+    def update(self, packageList, debloat_bool = False):
+        '''Update a file in the GCS registry'''
+        if debloat_bool:
+            print("Debloat")
         # update a list of packages in registry with an optional debloat parameter
-        storageClient = storage.Client()
-        #bucketName = "ece-461-project-2-registry"
-        bucket = storageClient.bucket(self.bucketName)
+        storage_client = storage.Client()
+        #bucket_name = "ece-461-project-2-registry"
+        bucket = storage_client.bucket(self.bucket_name)
         for p in packageList:
-            splitString = p.split("/")
-            fileToCheck = bucket.blob(splitString[-1])
-            if fileToCheck.exists():
-                self.upload(p)       
+            split_string = p.split("/")
+            file_check = bucket.blob(split_string[-1])
+            if file_check.exists():
+                self.upload(p)
 
     def rate(self, packageList):
+        '''Rate packages in registry'''
         try:
         # score a list of packages (zip files)
             results = []
-            currentDir = os.getcwd()
-            newDir = "unzipped_repo"
-            newPath = os.path.join(currentDir, newDir)
-            if not os.path.exists(newPath):
-                os.makedirs(newPath)
+            current_dir = os.getcwd()
+            new_dir = "unzipped_repo"
+            new_path = os.path.join(current_dir, new_dir)
+            if not os.path.exists(new_path):
+                os.makedirs(new_path)
 
-            for p in packageList:
-                resultsForRepo = dict()
-                key = p.split("/")[-1][:-4]
+            for package in packageList:
+                results_for_repo = dict()
+                key = package.split("/")[-1][:-4]
 
                 try:
-                    with zipfile.ZipFile(p, "r") as zipRef:
-                        fileList = zipRef.namelist()
-                        splitDir = fileList[0].split("/")
-                        zipRef.extractall(newPath)
-                        unzipFilePath = os.path.join(newPath, splitDir[0])
-                except Exception as e:
-                    raise Exception("Read in rate error", str(e), str(p))
+                    with zipfile.ZipFile(package, "r") as zip_ref:
+                        file_list = zip_ref.namelist()
+                        split_dir = file_list[0].split("/")
+                        zip_ref.extractall(new_path)
+                        unzip_filepath = os.path.join(new_path, split_dir[0])
+                except Exception as exc:
+                    raise Exception("Read in rate error", str(package)) from exc
                 # error if package.json does not exist            
-                packageJsonPath = os.path.join(unzipFilePath, "package.json")
+                packageJsonPath = os.path.join(unzip_filepath, "package.json")
                 try:
                     with open(packageJsonPath, "r") as fptr:
                         jsonData = json.load(fptr)
                 except:
-                    raise Exception(os.listdir(newPath + "/underscore-master"))
+                    raise Exception(os.listdir(new_path + "/underscore-master"))
                 repoUrl = jsonData["repository"]["url"]
                 splitUrl = repoUrl.split("/")
                 author = splitUrl[-2]
@@ -77,27 +80,27 @@ class ApplicationService:
                     score = scoreUrl(repoUrl, author, repo, jsonData)
                 except Exception as e:
                     raise Exception("score Url does not work", str(e), repoUrl)
-                resultsForRepo[key] = score
-                results.append(resultsForRepo)          
+                results_for_repo[key] = score
+                results.append(results_for_repo)          
             return results
         except Exception as e:
             raise Exception("rate error", str(e), e.args)
         
     def download(self, packageList):
         # download a list of packages from the existing repo
-        storageClient = storage.Client()
-        #bucketName = "ece-461-project-2-registry"
-        bucket = storageClient.bucket(self.bucketName)
+        storage_client = storage.Client()
+        #bucket_name = "ece-461-project-2-registry"
+        bucket = storage_client.bucket(self.bucket_name)
         downloadPath = str(os.path.join(os.getcwd(), "Downloads"))
 
         if not os.path.exists(downloadPath):
             os.makedirs(downloadPath)
 
         for x in packageList:
-            splitString = x.split("/")
-            fileToDownload = bucket.blob(splitString[-1]) # name of storage object goes here
-            print(downloadPath + "/" + splitString[-1])
-            fileToDownload.download_to_filename(downloadPath + "/" + splitString[-1]) # path to local file
+            split_string = x.split("/")
+            fileToDownload = bucket.blob(split_string[-1]) # name of storage object goes here
+            print(downloadPath + "/" + split_string[-1])
+            fileToDownload.download_to_filename(downloadPath + "/" + split_string[-1]) # path to local file
         pass
 
     def fetchHistory(self, packageList):

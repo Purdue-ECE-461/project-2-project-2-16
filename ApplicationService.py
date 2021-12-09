@@ -12,8 +12,7 @@ class ApplicationService:
         self.logger = None
         self.scorer = None
         self.authService = None
-        self.bucketName = "ece-461-project-2-registry"
-        
+        self.bucketName = "ece-461-project-2-registry"       
 
     def upload(self, packageList, debloatBool = False):
         # take a list of packages and upload them to the registry with an optional debloat param
@@ -25,8 +24,7 @@ class ApplicationService:
         for x in packageList:
             splitString = x.split("/")
             fileToUpload = bucket.blob(splitString[-1]) # name of storage object goes here
-            fileToUpload.upload_from_filename(x) # path to local file
-        
+            fileToUpload.upload_from_filename(x) # path to local file      
 
     def update(self, packageList, debloatBool = False):
         # update a list of packages in registry with an optional debloat parameter
@@ -37,8 +35,7 @@ class ApplicationService:
             splitString = p.split("/")
             fileToCheck = bucket.blob(splitString[-1])
             if fileToCheck.exists():
-                self.upload(p)
-        
+                self.upload(p)       
 
     def rate(self, packageList):
         try:

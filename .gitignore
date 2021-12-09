@@ -1,0 +1,10 @@
+lib
+__pycache__
+Downloads
+unzipped_repo
+.env
+google-cloud-creds.json
+new_zips
+bin
+share
+unzip

@@ -5,7 +5,7 @@ Figures out the command from user input and writes it to logfile
 import os
 from dotenv import load_dotenv
 from analysis import get_score
-from setup import setup_dependency, count_lines
+from setup import setup_dependency
 
 load_dotenv()
 LOG_LEVEL = os.getenv("LOG_LEVEL")

@@ -1,3 +1,6 @@
+'''
+Calculates scores for packages
+'''
 import requests
 import subprocess
 import os
@@ -8,10 +11,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 from dep_func import *
 
-
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # a back-up token just in case
-
 results = dict()  # follow this format: {url: [net, ramp, corr, bus, respon, responsive, license], ...}
 
 headers = {
@@ -33,18 +34,24 @@ params = {
 }
 
 def handler(signum, frame): #adopted from https://stackoverflow.com/questions/492519/timeout-on-a-function-call
-
+    '''
+    Raises time out exception
+    '''
     raise Exception("time out")
 
 
 def GitRequest(owner, repo):
+    '''
+    Returns json of GitHub repo
+    '''
     address = f"https://api.github.com/repos/{owner}/{repo}"
-    # api.github.com/user/repos
     r = requests.get(address, headers=headers, params=params)
     return r.json()
 
-
 def get_ramp_up(json):
+    '''
+    Calculates Ramp_Up Score
+    '''
     try:
         hasWiki = json['has_wiki']
         if hasWiki is False:
@@ -54,25 +61,23 @@ def get_ramp_up(json):
     except:
         return 0
 
-
 def get_bus_factor(json):
+    '''
+    Calculates Bus_Factor Score
+    '''
     try:
         watch = json["watchers_count"]
         if watch > 1000:
-            return 1
-        
+            return 1     
         return watch / 1000
     except:
         raise Exception("Json: ", json)
-    #contri_url = json['contributors_url']
-    #r = requests.get(contri_url)
-    #print(r.json())
-    #print("bus factor score: " + str(len(r.json())))
-    #return len(r.json())
     return .5
 
-
 def get_responsive_score(json):
+    '''
+    Calculates Responsiveness Score
+    '''
     last_day = json["updated_at"]
     last_day = last_day.replace("T", " ")
     last_day = last_day.replace("Z", " ")
@@ -84,49 +89,53 @@ def get_responsive_score(json):
         score = 0
     return score
 
-
 def get_license(json):
+    '''
+    Calculates License Score
+    '''
     have_license = json['license']
     if have_license is None:
         return 0
     else:
         return 1
 
-
 def get_correctness(json, git_url, repo_name):
+    '''
+    Calculates Correctness Score
+    '''
     stars = json["stargazers_count"]    
     scoreValue = 0
     if stars > 1000:
         scoreValue = .5
-
     elif stars > 500:
         scoreValue = .3
-
     elif stars > 250:
         scoreValue = .2
-
     elif stars > 50:
         scoreValue = .1
 
     tempStarNum = stars - 1000
-
     if tempStarNum >= 500:
         scoreValue = scoreValue + ((tempStarNum / 500) / 10)
-
     if scoreValue > 1:
         scoreValue = 1
 
     return scoreValue
 
 def get_dep_score(jsonData):
+    '''
+    Calls get_dep for Dependency Score
+    '''
     return get_dep(jsonData)
 
 def calculator(json_dict, url, repo, git_url, jsonData):
+    '''
+    Get's all of the scores
+    '''
     try:
         ramp_up_score = get_ramp_up(json_dict)
     except Exception as e:
         raise Exception("Ramp up error", str(e))
-    # correctness_score = get_correctness(json) #this calls another program, and test the test case
     try:
         bus_factor = get_bus_factor(json_dict)
     except Exception as e:
@@ -152,20 +161,20 @@ def calculator(json_dict, url, repo, git_url, jsonData):
     except Exception as e:
         raise Exception("Dep error", str(e))
 
-    # asdfasdf
     try:
         net = sum([weights["ramp-up"] * ramp_up_score, weights["correct"] * correctness, weights["bus-factor"] * bus_factor, weights["maintainer"] * responsive_score, weights["license"] * lic, weights["dependencies"] * dep_score])
         results[url] = [net, ramp_up_score, correctness, bus_factor, responsive_score, lic, dep_score]
     except Exception as e:
         raise Exception("Net score error", str(e))
-    pass
-
 
 def url_to_user(url):
+    '''
+    Gets user and repo from URL
+    '''
     try:
         if 'github' in url:
             s = url.split("/")
-            return s[-2], s[-1], url  ##user, repo
+            return s[-2], s[-1], url    #user, repo
         else:
             page = requests.get(url)
             for line in page.text.splitlines():
@@ -177,55 +186,25 @@ def url_to_user(url):
     except Exception as e:
         raise Exception("Uncaught exception in url to user", str(e))
 
-
-        pass
-
-
 def set_print_ordered():
-
+    '''
+    Set the print order
+    '''
     scoreList = list(results.items())
-    scoreList.sort(key=lambda x:x[1][0])
-   # sorted_values = sorted(results.values(), key=lambda x: x[0])[::-1]  # Sort the values adopted from :https://stackabuse.com/how-to-sort-dictionary-by-value-in-python/
-    #print(scoreList)
-
-    # for i in sorted_values:
-    #     for k in results.keys():
-    #         if results[k] == i:
-    #             sorted_dict[k] = results[k]
-    #             break
-
-    # max_list = [0, 0, 0, 0, 0]
-    # for key in sorted_dict:
-    #     for j in range(1, 6):
-    #         if max_list[j - 1] < sorted_dict[key][j]:
-    #             max_list[j - 1] = sorted_dict[key][j]
-
-    # for key in sorted_dict:
-    #     for j in range(1, 5):
-    #         if max_list[j - 1] == 0:
-    #             sorted_dict[key][j] = 1
-    #         else:
-    #             sorted_dict[key][j] = sorted_dict[key][j] / max_list[j - 1]
-
-    # for key in sorted_dict:
-    #     sorted_dict[key][0] = sorted_dict[key][0] / sum(weights.values())
-
-    return scoreList
+    return scoreList.sort(key=lambda x:x[1][0])
 
 def print_score():
+    '''
+    Print all scores
+    '''
     sorted_list = set_print_ordered()
-
     for x in sorted_list:
         print(x[0] + " %.2f %.2f %.2f %.2f %.2f %.2f" % (x[1][0], x[1][1], x[1][2], x[1][3], x[1][4], x[1][5]))
 
-    # print("URL NET_SCORE RAMP_UP_SCORE CORRECTNESS_SCORE BUS_FACTOR_SCORE RESPONSIVE_MAINTAINER_SCORE LICENSE_SCORE")
-    # for key in sorted_dict:
-    #     print(key, end=" ")
-    #     for i in sorted_dict[key]:
-    #         print(i, end=" ")
-    #     print("")
-
 def get_score(user_input, jsonData):
+    '''
+    Calls print_score to print the scores
+    '''
     fp = open(user_input, "r")
     urls = fp.readlines()
     print("stripped urls")
@@ -236,12 +215,13 @@ def get_score(user_input, jsonData):
         json = GitRequest(owner, repo)
         print(json)
         print("completed json request for repo: " + repo)
-        #calculator(json, url, repo, git_url, jsonData)
         print("calculated score for repo: " + repo)
-
     print_score()
 
 def scoreUrl(url, owner, repo, jsonData):
+    '''
+    Get's the scores for a URL
+    '''
     results[url] = []
     try:
         json = GitRequest(owner, repo)
@@ -251,10 +231,10 @@ def scoreUrl(url, owner, repo, jsonData):
         calculator(json, url, repo, url, jsonData)
     except Exception as e:
         raise Exception("calculator error", str(e))
-
-    #print_score()
-
     return results[url]
 
 def getScores():
+    '''
+    Returns the scores
+    '''
     return results

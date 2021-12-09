@@ -58,8 +58,8 @@ def get_ramp_up(json):
         if has_wiki is False:
             return 0
         return 1
-    except Exception as e:
-        raise Exception("Ramp up Score Error", str(e))
+    except Exception as error:
+        raise Exception("Ramp up Score Error", str(error))
     return 0
 
 def get_bus_factor(json):
@@ -71,7 +71,7 @@ def get_bus_factor(json):
         if watch > 1000:
             return 1
         return watch / 1000
-    except Exception as e:
+    except Exception as _:
         raise Exception("Json: ", json)
     return .5
 
@@ -105,31 +105,29 @@ def get_correctness(json, git_url, repo_name):
     Calculates Correctness Score
     '''
     stars = json["stargazers_count"]
-    scoreValue = 0
+    score_value = 0
     if stars > 1000:
-        scoreValue = .5
+        score_value = .5
     elif stars > 500:
-        scoreValue = .3
+        score_value = .3
     elif stars > 250:
-        scoreValue = .2
+        score_value = .2
     elif stars > 50:
-        scoreValue = .1
+        score_value = .1
 
-    tempStarNum = stars - 1000
+    temp_star_num = stars - 1000
     if tempStarNum >= 500:
-        scoreValue = scoreValue + ((tempStarNum / 500) / 10)
-    if scoreValue > 1:
-        scoreValue = 1
+        score_value = score_value + ((temp_star_num / 500) / 10)
 
-    return scoreValue
+    return min(score_value, 1)
 
-def get_dep_score(jsonData):
+def get_dep_score(json_data):
     '''
     Calls get_dep for Dependency Score
     '''
-    return get_dep(jsonData)
+    return get_dep(json_data)
 
-def calculator(json_dict, url, repo, git_url, jsonData):
+def calculator(json_dict, url, repo, git_url, json_data):
     '''
     Get's all of the scores
     '''
@@ -158,7 +156,7 @@ def calculator(json_dict, url, repo, git_url, jsonData):
         raise Exception("license error", str(e))
 
     try:
-        dep_score = get_dep_score(jsonData)
+        dep_score = get_dep_score(json_data)
     except Exception as e:
         raise Exception("Dep error", str(e))
 
@@ -209,7 +207,7 @@ def print_score():
         print(x[0] + " %.2f %.2f %.2f %.2f %.2f %.2f" \
             % (x[1][0], x[1][1], x[1][2], x[1][3], x[1][4], x[1][5]))
 
-def get_score(user_input, jsonData):
+def get_score(user_input, json_data):
     '''
     Calls print_score to print the scores
     '''
@@ -226,7 +224,7 @@ def get_score(user_input, jsonData):
         print("calculated score for repo: " + repo)
     print_score()
 
-def scoreUrl(url, owner, repo, jsonData):
+def scoreUrl(url, owner, repo, json_data):
     '''
     Get's the scores for a URL
     '''
@@ -236,7 +234,7 @@ def scoreUrl(url, owner, repo, jsonData):
     except Exception as e:
         raise Exception("git_request() fail", str(e))
     try:
-        calculator(json, url, repo, url, jsonData)
+        calculator(json, url, repo, url, json_data)
     except Exception as e:
         raise Exception("calculator error", str(e))
     return results[url]

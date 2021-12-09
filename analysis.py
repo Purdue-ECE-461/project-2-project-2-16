@@ -59,7 +59,8 @@ def get_ramp_up(json):
             return 0
         return 1
     except Exception as e:
-        return 0
+        raise Exception("Ramp up Score Error", str(e))
+    return 0
 
 def get_bus_factor(json):
     '''
@@ -168,7 +169,8 @@ def calculator(json_dict, url, repo, git_url, jsonData):
             weights["maintainer"] * responsive_score, \
             weights["license"] * lic, \
             weights["dependencies"] * dep_score])
-        results[url] = [net, ramp_up_score, correctness, bus_factor, responsive_score, lic, dep_score]
+        results[url] = [net, ramp_up_score, correctness, \
+            bus_factor, responsive_score, lic, dep_score]
     except Exception as e:
         raise Exception("Net score error", str(e))
 

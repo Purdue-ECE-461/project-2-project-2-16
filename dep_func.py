@@ -5,10 +5,13 @@ Needs more rigerous testing
 '''
 
 def get_dep(package):
+    '''
+    Calculates dependency score given the package
+    '''
     # No Dependencies
     if 'devDependencies' not in package.keys():
         return 1
-    
+
     # Classify each dependency as pinned or not_pinned
     pinned = 0
     not_pinned = 0
@@ -41,8 +44,11 @@ def get_dep(package):
         return 1
     return not_pinned / (pinned + not_pinned)
 
-            
 def main():
+    '''
+    Sets up package to get dependency score of
+    Calls function to get dependency score
+    '''
     # package.json from cloudinary_npm
     package = \
         {
@@ -122,7 +128,7 @@ def main():
         "node": ">=0.6"
         }
         }
-    
+
     print(get_dep(package))
 
 if __name__ == '__main__':

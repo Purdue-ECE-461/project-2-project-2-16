@@ -33,7 +33,6 @@ def figure_out_command(user_input):
             setup_dependency()
         except RuntimeError:
             print("Dependency does not install correctly")
-        return 0
 
     if user_command == "URL_SET":
         try:
@@ -42,11 +41,11 @@ def figure_out_command(user_input):
 
         except RuntimeError:
             print("Score evaluation does not work correctly")
-        return 0
 
     if user_command == "TEST":
         print("starting tests")
-        return 0
+
+    return 0
 
 def find_log_mode():
     '''
@@ -60,11 +59,7 @@ def write_log_file():
     Writes to the log file
     '''
     current_mode = find_log_mode()
-    output_file_address = str(LOG_FILE) + ".log"	
-    API_num = count_lines("requirements.txt")
-
     if current_mode == 'NORMAL':
         print("log mode: Normal")
-
     elif current_mode == 'DEBUG':
         print("log mode: debug")

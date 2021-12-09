@@ -7,7 +7,7 @@ def count_lines(file):
     Adapted from https://www.kite.com/python/answers/how-to-get-a-line-count-of-a-file-in-python
     A quick way to count the numbers of dependencies installed
     '''
-    with open(file, "r"):
+    with open(file, "r", encoding="utf-8"):
         data = file.read()
         nonempty_lines = [line.strip("\n") for line in data if line != "\n"]
         line_count = len(nonempty_lines)

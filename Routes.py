@@ -564,7 +564,9 @@ def reset():
     except Exception as e:
         return {"Exception": str(e), "args": e.args}, 401
 
-
+@app.route("/authenticate", methods=["PUT"])
+def authenticate():
+    return {"Authentication": "Not implemented"}, 501
 
 if __name__ == '__main__':
     app.run(host="localhost", port=5000, debug=True)

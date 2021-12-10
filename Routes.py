@@ -89,7 +89,7 @@ def updateHist(id, typeUpdate, packageList):
 @app.before_request
 def log_request():
     app.logger.info('\t'.join([
-            datetime.datetime.today().ctime(),
+            datetime.now(),
             request.remote_addr,
             request.method,
             request.url,

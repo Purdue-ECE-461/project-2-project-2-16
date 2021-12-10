@@ -1,9 +1,11 @@
+import logging
 from re import S
 from flask import Flask, request
 from flask.scaffold import F
 from flask_cors import CORS, cross_origin
 from ApplicationService import *
 from google.cloud import storage
+from flask.logging import *
 import zipfile
 import base64
 import re
@@ -12,11 +14,12 @@ import requests
 app = Flask(__name__)
 CORS(app)
 
-actionHistory = dict() # maps String id to [(date, action)],...
-
 appService = ApplicationService()
 
 bucketName = "ece-461-project-2-registry"
+LOG_FILENAME = 'logfile.log'
+
+logging.basicConfig(filename=LOG_FILENAME, level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(message)s')
 
 # IDs are always unique strings, and different versions of the same package will have unique IDs
 # Names can be duplicates, IDs cannot
@@ -82,6 +85,17 @@ def updateHist(id, typeUpdate, packageList):
         appService.upload(files)
     except Exception as e:
         raise Exception("update Hist failed", str(e))
+
+@app.before_request
+def log_request():
+    app.logger.info('\t'.join([
+            datetime.datetime.today().ctime(),
+            request.remote_addr,
+            request.method,
+            request.url,
+            request.data,
+            ', '.join([': '.join(x) for x in request.headers])]))
+
 
 @app.route("/package/<id>")
 def getPackage(id):

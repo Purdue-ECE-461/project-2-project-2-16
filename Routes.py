@@ -89,13 +89,28 @@ def updateHist(id, typeUpdate, packageList):
 @app.before_request
 def log_request():
     log_path = os.path.join(os.getcwd(), LOG_FILENAME)
-    with open(log_path, "w", encoding="utf-8") as fptr:
-        log_info = str(datetime.now()) + ": ".join([request.remote_addr,
-            request.method,
-            request.url,
-            request.data,
-            ', '.join([': '.join(x) for x in request.headers])])
-        fptr.write(log_info)
+    if checkIfFileExists("logfile.log"):
+        storageClient = storage.Client()
+        bucket = storageClient.bucket(bucketName)
+        file_download = bucket.blob("logfile.log")
+        file_download.download_to_file(log_path)
+        with open(log_path, "a", encoding="utf-8") as fptr:
+            log_info = str(datetime.now()) + ": ".join([request.remote_addr,
+                request.method,
+                request.url,
+                request.data,
+                ', '.join([': '.join(x) for x in request.headers])])
+            fptr.write(log_info)
+    else:
+        with open(log_path, "w", encoding="utf-8") as fptr:
+            log_info = str(datetime.now()) + ": ".join([request.remote_addr,
+                request.method,
+                request.url,
+                request.data,
+                ', '.join([': '.join(x) for x in request.headers])])
+            fptr.write(log_info)
+        
+
 
 
 

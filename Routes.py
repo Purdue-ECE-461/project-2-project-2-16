@@ -88,13 +88,15 @@ def updateHist(id, typeUpdate, packageList):
 
 @app.before_request
 def log_request():
-    app.logger.info('\t'.join([
-            datetime.now(),
-            request.remote_addr,
+    log_path = os.path.join(os.getcwd(), LOG_FILENAME)
+    with open(log_path, "w", encoding="utf-8") as fptr:
+        log_info = str(datetime.now()) + ": ".join([request.remote_addr,
             request.method,
             request.url,
             request.data,
-            ', '.join([': '.join(x) for x in request.headers])]))
+            ', '.join([': '.join(x) for x in request.headers])])
+        fptr.write(log_info)
+
 
 
 @app.route("/package/<id>")

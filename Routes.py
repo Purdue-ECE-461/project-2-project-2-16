@@ -3,7 +3,7 @@ import json
 import os
 from re import S
 from dotenv import load_dotenv
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask.scaffold import F
 from flask_cors import CORS, cross_origin
 from application_service import ApplicationService 
@@ -16,6 +16,7 @@ import requests
 app = Flask(__name__)
 CORS(app)
 
+app.config['SECRET_KEY'] = "secretkey"
 app_service = ApplicationService()
 BUCKET_NAME = "ece-461-project-2-registry"
 
@@ -94,7 +95,7 @@ def getPackage(package_id):
     # Returns the actual compressed file in the content field as an encrypted base 64 string
     try:
         package_list = create_package_list_dict()
-        if (check_if_file_exists(package_id)):
+        if check_if_file_exists(package_id):
             storage_client = storage.Client()
             bucket = storage_client.bucket(BUCKET_NAME)
             file_check = bucket.blob(package_id + ".zip")
@@ -568,8 +569,9 @@ def reset():
         return {"Exception": str(e), "args": e.args}, 401
 
 
+@app.route("/authenticate", methods=["PUT"])
+def authenticate():
+    return {"Authentication": "Not implemented"}, 501
 
 if __name__ == '__main__':
     app.run(host="localhost", port=5000, debug=True)
-
-

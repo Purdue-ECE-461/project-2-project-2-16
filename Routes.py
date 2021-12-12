@@ -34,7 +34,7 @@ def createPackageListDict():
             name = str(blob.name)
             fileType = name [-4:]
             id = name[:-4]
-            matchVersion = re.search("\d+\.\d+\.\d+", id)
+            matchVersion = re.search("\d+\.\d+\.\d+\.zip", name)
             version = matchVersion.group()
             pkgName = id[:-(len(matchVersion.group()))]
             if fileType == ".zip":
@@ -588,7 +588,6 @@ def reset():
         for blob in blobs:
             blob.delete()
         
-        actionHistory.clear()
         appService.reset()
 
         return {}, 200

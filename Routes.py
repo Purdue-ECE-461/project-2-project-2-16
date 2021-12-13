@@ -34,7 +34,7 @@ def createPackageListDict():
             name = str(blob.name)
             fileType = name [-4:]
             id = name[:-4]
-            matchVersion = re.search("\d+\.\d+\.\d+", name)
+            matchVersion = re.search("\d+\.\d+\.\d+", id)
             version = matchVersion.group()[:-4]
             pkgName = id[:-(len(matchVersion.group()))]
             if fileType == ".zip":
